@@ -1,4 +1,4 @@
 TimeTracker
 ===========
 
-Android app for tracking your time
+Android app for tracking your time.

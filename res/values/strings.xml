@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TimeTracker</string>
+    <string name="context">Context</string>
+    <string name="working_on">Working on</string>
+    <string name="for_label">for</string>
+</resources>
