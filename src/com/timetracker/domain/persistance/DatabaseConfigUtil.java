@@ -1,4 +1,4 @@
-package com.timetracker.domain.clickcounter.data;
+package com.timetracker.domain.persistance;
 
 import com.j256.ormlite.android.apptools.OrmLiteConfigUtil;
 

@@ -3,34 +3,28 @@ package com.timetracker.domain;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import java.util.Date;
+
 /**
- * @author Anton Chernetskiy
+ * Created by Anton Chernetskij
  */
-@DatabaseTable(tableName = "tasks")
-public class Task {
+@DatabaseTable(tableName = "task_switch_events")
+public class TaskSwitchEvent {
 
     @DatabaseField(generatedId = true)
     public Integer id;
 
     @DatabaseField
-    public String name;
+    public Date switchTime;
 
     @DatabaseField(canBeNull = false, foreign = true, maxForeignAutoRefreshLevel = 3, foreignAutoRefresh = true)
-    public TaskContext context;
-
-    public Task() {
-    }
-
-    public Task(String name, TaskContext context) {
-        this.name = name;
-        this.context = context;
-    }
+    public Task task;
 
     @Override
     public String toString() {
-        return "Task{" +
-                "name='" + name + '\'' +
-                ", context=" + context +
+        return "TaskSwitchEvent{" +
+                "switchTime=" + switchTime +
+                ", task=" + task +
                 '}';
     }
 }

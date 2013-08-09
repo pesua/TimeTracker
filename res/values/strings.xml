@@ -4,4 +4,6 @@
     <string name="context">Context</string>
     <string name="working_on">Working on</string>
     <string name="for_label">for</string>
+    <string name="start_task">Start</string>
+    <string name="showReport">Show Report</string>
 </resources>
