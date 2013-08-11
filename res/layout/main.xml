@@ -60,8 +60,9 @@
                 android:id="@+id/textView"
                 android:layout_gravity="left|center_vertical"
                 android:enabled="true"
-                android:paddingLeft="5dp"
-                android:paddingRight="5dp"/>
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                />
 
         <Spinner
                 android:layout_width="wrap_content"
@@ -73,7 +74,7 @@
     </LinearLayout>
 
     <ListView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:id="@+id/listView"
             android:layout_gravity="center"
