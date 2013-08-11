@@ -81,7 +81,7 @@
 
     <LinearLayout
             android:orientation="vertical"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center">
 
@@ -90,7 +90,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/showReport"
                 android:id="@+id/showReportButton"
-                android:layout_gravity="center_vertical"
                 />
     </LinearLayout>
 

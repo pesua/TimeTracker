@@ -1,5 +1,6 @@
 package com.timetracker.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -39,7 +40,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(MainActivity.this, ReportActivity.class);
+                startActivity(intent);
             }
         });
     }
