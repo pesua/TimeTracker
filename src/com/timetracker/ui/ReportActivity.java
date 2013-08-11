@@ -63,12 +63,12 @@ public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                 }
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTime(event.switchTime);
-                taskBox.setHeight((int) (((calendar.get(Calendar.HOUR) - hours) * 60.0 + (calendar.get(Calendar.MINUTE) - minutes)) * hourHeight / 60));
+                taskBox.setHeight((int) (((calendar.get(Calendar.HOUR_OF_DAY) - hours) * 60.0 + (calendar.get(Calendar.MINUTE) - minutes)) * hourHeight / 60));
                 taskBox.setBackground(getResources().getDrawable(R.drawable.border));
                 taskBox.setGravity(Gravity.CENTER);
                 tasksLine.addView(taskBox, getLayoutParams());
 
-                hours = calendar.get(Calendar.HOUR);
+                hours = calendar.get(Calendar.HOUR_OF_DAY);
                 minutes = calendar.get(Calendar.MINUTE);
                 currentTask = event.task;
             }
@@ -77,7 +77,7 @@ public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                 taskBox.setText(currentTask.name);
             }
             Calendar calendar = Calendar.getInstance();
-            taskBox.setHeight((int) (((calendar.get(Calendar.HOUR) - hours) * 60.0 + (calendar.get(Calendar.MINUTE) - minutes)) * hourHeight / 60));
+            taskBox.setHeight((int) (((calendar.get(Calendar.HOUR_OF_DAY) - hours) * 60.0 + (calendar.get(Calendar.MINUTE) - minutes)) * hourHeight / 60));
             taskBox.setBackground(getResources().getDrawable(R.drawable.border));
             taskBox.setGravity(Gravity.CENTER);
 
@@ -98,12 +98,14 @@ public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
 
-        calendar.set(Calendar.HOUR, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
         Date from = calendar.getTime();
 
-        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
         Date to = calendar.getTime();
 
         return getHelper().getEventsDao().queryBuilder().where().ge("switchTime", from).and().le("switchTime", to).query();
