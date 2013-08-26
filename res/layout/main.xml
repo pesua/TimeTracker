@@ -21,15 +21,14 @@
                 android:paddingRight="5dp"/>
 
         <EditText
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/currentTaskName"
                 android:enabled="true"
                 android:editable="false"
                 android:text=" "
                 android:inputType="none"
-                android:layout_weight="1"
-                />
+                android:layout_weight="1"/>
 
         <TextView
                 android:layout_width="wrap_content"
@@ -44,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/chronometer"
                 android:autoText="false"
-                android:layout_weight="1"/>
+                />
 
     </LinearLayout>
 
@@ -71,6 +70,20 @@
                 android:layout_gravity="right|center_vertical"
                 android:spinnerMode="dropdown"
                 android:layout_weight="1"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-"
+                android:id="@+id/removeContextButton"
+                android:layout_gravity="center"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+"
+                android:id="@+id/createContextButton"
+                android:layout_gravity="center"/>
     </LinearLayout>
 
     <ListView
@@ -79,6 +92,13 @@
             android:id="@+id/listView"
             android:layout_gravity="center"
             android:layout_weight="0.52"/>
+
+    <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/createTask"
+            android:id="@+id/createTaskButton"
+            android:layout_gravity="center"/>
 
     <LinearLayout
             android:orientation="vertical"

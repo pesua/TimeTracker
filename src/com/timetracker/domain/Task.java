@@ -18,6 +18,9 @@ public class Task {
     @DatabaseField(canBeNull = false, foreign = true, maxForeignAutoRefreshLevel = 3, foreignAutoRefresh = true)
     public TaskContext context;
 
+    @DatabaseField
+    public boolean isDeleted = false;
+
     public Task() {
     }
 

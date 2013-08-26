@@ -1,6 +1,9 @@
 package com.timetracker.ui;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -33,6 +36,16 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         loadTaskList();
         refreshTimer();
         initReportButton();
+        initContextCreationButton();
+        initTaskCreationButton();
+        initRemoveContextButton();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initContextSpinner();
+        loadTaskList();
     }
 
     private void initReportButton() {
@@ -49,7 +62,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     private void initContextSpinner() {
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         try {
-            List<TaskContext> contexts = getHelper().getContextDao().queryForAll();
+            List<TaskContext> contexts = getHelper().getContextDao().queryBuilder().orderBy("name", true)
+                    .where().eq("isDeleted", Boolean.FALSE).query();
             ArrayAdapter<TaskContext> dataAdapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_spinner_item, contexts);
             dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -72,9 +86,9 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
     private void loadTaskList() {
         try {
-            Spinner spinner = (Spinner) findViewById(R.id.spinner);
-            TaskContext context = (TaskContext) spinner.getSelectedItem();
-            final List<Task> tasks = getHelper().getTaskDao().queryForEq("context_id", context.id);
+            TaskContext context = getCurrentContext();
+            final List<Task> tasks = getHelper().getTaskDao().queryBuilder().orderBy("name", true)
+                    .where().eq("context_id", context.id).and().eq("isDeleted", Boolean.FALSE).query();
             ListAdapter adapter = new BaseAdapter() {
                 @Override
                 public int getCount() {
@@ -97,7 +111,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
                     if (row == null) {
                         LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-                        row = inflater.inflate(R.layout.task, parent, false);
+                        row = inflater.inflate(R.layout.task_list_item, parent, false);
                     }
 
                     final Task task = tasks.get(position);
@@ -105,12 +119,32 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                     TextView taskName = (TextView) row.findViewById(R.id.taskName);
                     taskName.setText(task.name);
 
-                    Button button = (Button) row.findViewById(R.id.startTask);
-                    button.setOnClickListener(new View.OnClickListener() {
+                    Button taskStartButton = (Button) row.findViewById(R.id.startTask);
+                    taskStartButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             startTask(task);
                             refreshTimer();
+                        }
+                    });
+
+                    Button removeTaskButton = (Button) row.findViewById(R.id.removeTaskButton);
+                    removeTaskButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            showRemoveDialog(task);
+                        }
+                    });
+
+                    row.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+
+                            Intent intent = new Intent(MainActivity.this, TaskCreationActivity.class);
+                            intent.putExtra(TaskCreationActivity.CONTEXT_ID, getCurrentContext().id);
+                            intent.putExtra(TaskCreationActivity.TASK_ID, task.id);
+                            startActivity(intent);
+                            return false;
                         }
                     });
                     return row;
@@ -121,6 +155,31 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void showRemoveDialog(final Task task) {
+        Resources res = getResources();
+        String msg = String.format(res.getString(R.string.removeContextDialogText, task.name));
+        AlertDialog dialog = new AlertDialog.Builder(this).setMessage(msg)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        removeTask(task);
+                        loadTaskList();
+                        dialog.dismiss();
+                    }
+                }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).create();
+        dialog.show();
+    }
+
+    private TaskContext getCurrentContext() {
+        Spinner contextSpinner = (Spinner) findViewById(R.id.spinner);
+        return (TaskContext) contextSpinner.getSelectedItem();
     }
 
     private void refreshTimer() {
@@ -137,9 +196,65 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         }
     }
 
+    private void initContextCreationButton() {
+        Button button = (Button) findViewById(R.id.createContextButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, ContextCreationActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void initTaskCreationButton() {
+        Button button = (Button) findViewById(R.id.createTaskButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, TaskCreationActivity.class);
+                intent.putExtra(TaskCreationActivity.CONTEXT_ID, getCurrentContext().id);
+                intent.putExtra(TaskCreationActivity.TASK_ID, -1);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void initRemoveContextButton() {
+        Button removeContextButton = (Button) findViewById(R.id.removeContextButton);
+        removeContextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final TaskContext context = getCurrentContext();
+                showRemoveDialog(context);
+            }
+        });
+    }
+
+    private void showRemoveDialog(final TaskContext context) {
+        Resources res = getResources();
+        String msg = String.format(res.getString(R.string.removeContextDialogText, context.name));
+        AlertDialog dialog = new AlertDialog.Builder(this).setMessage(msg)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        removeTaskContext(context);
+                        initContextSpinner();
+                        dialog.dismiss();
+                    }
+                }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).create();
+        dialog.show();
+    }
+
     private void startTask(Task task) {
         try {
-            if (lastTaskSwitch().task.id.equals(task.id)) {
+            TaskSwitchEvent lastSwitchEvent = lastTaskSwitch();
+            if (lastSwitchEvent != null && lastSwitchEvent.task.id.equals(task.id)) {
                 return;
             }
             TaskSwitchEvent event = new TaskSwitchEvent();
@@ -158,8 +273,32 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         try {
             GenericRawResults<String[]> results = getHelper().getEventsDao()
                     .queryRaw("select id from task_switch_events where switchTime = (select max(switchTime) from task_switch_events)");
-            int lastEventId = Integer.valueOf(results.getFirstResult()[0]);
-            return getHelper().getEventsDao().queryForId(lastEventId);
+
+            String[] firstResult = results.getFirstResult();
+            if (firstResult == null) {
+                return null;
+            } else {
+                int lastEventId = Integer.valueOf(firstResult[0]);
+                return getHelper().getEventsDao().queryForId(lastEventId);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void removeTaskContext(TaskContext context) {
+        context.isDeleted = true;
+        try {
+            getHelper().getContextDao().update(context);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void removeTask(Task task) {
+        task.isDeleted = true;
+        try {
+            getHelper().getTaskDao().update(task);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

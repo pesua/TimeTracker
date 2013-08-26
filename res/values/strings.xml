@@ -6,4 +6,12 @@
     <string name="for_label">for</string>
     <string name="start_task">Start</string>
     <string name="showReport">Show Report</string>
+    <string name="createContext">Create new context</string>
+    <string name="create">Create</string>
+    <string name="cancel">Cancel</string>
+    <string name="createTask">Add Task</string>
+    <string name="save">Save</string>
+    <string name="emptyName">Name can\'t be empty.</string>
+    <string name="removeContextDialogText">Do you really want to delete context \"%s\"?</string>
+    <string name="removeTaskDialogText">Do you really want to delete task \"%s\"?</string>
 </resources>
