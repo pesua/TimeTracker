@@ -1,5 +1,7 @@
 package com.timetracker.ui;
 
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -60,11 +62,13 @@ public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                 TextView taskBox = new TextView(this);
                 if (currentTask != null) {
                     taskBox.setText(currentTask.name);
+                    taskBox.setBackground(getFill(currentTask.color));
+                } else {
+                    taskBox.setBackground(getFill(0));
                 }
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTime(event.switchTime);
                 taskBox.setHeight((int) (((calendar.get(Calendar.HOUR_OF_DAY) - hours) * 60.0 + (calendar.get(Calendar.MINUTE) - minutes)) * hourHeight / 60));
-                taskBox.setBackground(getResources().getDrawable(R.drawable.border));
                 taskBox.setGravity(Gravity.CENTER);
                 tasksLine.addView(taskBox, getLayoutParams());
 
@@ -75,16 +79,26 @@ public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             TextView taskBox = new TextView(this);
             if (currentTask != null) {
                 taskBox.setText(currentTask.name);
+                taskBox.setBackground(getFill(currentTask.color));
+            } else {
+                taskBox.setBackground(getFill(0));
             }
             Calendar calendar = Calendar.getInstance();
             taskBox.setHeight((int) (((calendar.get(Calendar.HOUR_OF_DAY) - hours) * 60.0 + (calendar.get(Calendar.MINUTE) - minutes)) * hourHeight / 60));
-            taskBox.setBackground(getResources().getDrawable(R.drawable.border));
             taskBox.setGravity(Gravity.CENTER);
 
             tasksLine.addView(taskBox, getLayoutParams());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private GradientDrawable getFill(int color) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setShape(GradientDrawable.RECTANGLE);
+        drawable.setStroke(1, Color.WHITE);
+        drawable.setColor(color);
+        return drawable;
     }
 
     private LinearLayout.LayoutParams getLayoutParams() {
