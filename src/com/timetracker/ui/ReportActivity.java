@@ -48,6 +48,10 @@ public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         try {
             List<TaskSwitchEvent> events = getTaskEvents(date);
 
+            if (events.isEmpty()) {
+                return;
+            }
+
             Task currentTask = null;
             Integer firstEventId = events.get(0).id;
             if (firstEventId > 1) {

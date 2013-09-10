@@ -39,31 +39,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             for (Class<?> domainClass : DOMAIN_CLASSES) {
                 TableUtils.createTable(connectionSource, domainClass);
             }
-            initDbData();
         } catch (SQLException e) {
             Log.e(DatabaseHelper.class.getName(), "Unable to create datbases", e);
-        }
-    }
-
-    private void initDbData() {        //todo remove after adding ability to create tasks
-        try {
-            getContextDao();
-            getTaskDao();
-
-            TaskContext context = new TaskContext();
-            context.name = "Context";
-            contextDao.create(context);
-            taskDao.create(new Task("Task 1", context));
-            taskDao.create(new Task("Task 2", context));
-
-            TaskContext coolContext = new TaskContext();
-            coolContext.name = "Cool Context";
-            contextDao.create(coolContext);
-            taskDao.create(new Task("Cool Task 1", coolContext));
-            taskDao.create(new Task("Cool Task 2", coolContext));
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 

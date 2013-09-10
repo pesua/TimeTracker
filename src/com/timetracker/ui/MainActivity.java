@@ -20,6 +20,7 @@ import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -87,8 +88,15 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     private void loadTaskList() {
         try {
             TaskContext context = getCurrentContext();
-            final List<Task> tasks = getHelper().getTaskDao().queryBuilder().orderBy("name", true)
-                    .where().eq("context_id", context.id).and().eq("isDeleted", Boolean.FALSE).query();
+            Integer id = context != null ? context.id : null;
+            List<Task> queryResult;
+            if (context == null) {
+                queryResult = new ArrayList<>();
+            } else {
+                queryResult = getHelper().getTaskDao().queryBuilder().orderBy("name", true)
+                                    .where().eq("context_id", id).and().eq("isDeleted", Boolean.FALSE).query();
+            }
+            final List<Task> tasks = queryResult;
             ListAdapter adapter = new BaseAdapter() {
                 @Override
                 public int getCount() {

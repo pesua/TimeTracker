@@ -27,6 +27,9 @@ public class Task {
     @DatabaseField
     public int color;
 
+    @DatabaseField
+    public String tags;
+
     public Task() {
     }
 
