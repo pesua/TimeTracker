@@ -21,12 +21,12 @@ import java.util.List;
 /**
  * Created by Anton Chernetskij
  */
-public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
+public class TimelineReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.report);
+        setContentView(R.layout.timeline_report);
 
         int hourHeight = 60;    //todo add zoom
         initTimeRuler(hourHeight);
@@ -46,7 +46,7 @@ public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
     private void initTasksStack(int hourHeight, Date date) {
         try {
-            List<TaskSwitchEvent> events = getTaskEvents(date);
+            List<TaskSwitchEvent> events = getHelper().getTaskEvents(date, date);
 
             if (events.isEmpty()) {
                 return;
@@ -102,6 +102,7 @@ public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         drawable.setShape(GradientDrawable.RECTANGLE);
         drawable.setStroke(1, Color.WHITE);
         drawable.setColor(color);
+        drawable.setAlpha(Task.DEFAULT_COLOR_ALPHA);
         return drawable;
     }
 
@@ -110,22 +111,5 @@ public class ReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.gravity = Gravity.CENTER;
         return params;
-    }
-
-    private List<TaskSwitchEvent> getTaskEvents(Date date) throws SQLException {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        Date from = calendar.getTime();
-
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-        Date to = calendar.getTime();
-
-        return getHelper().getEventsDao().queryBuilder().where().ge("switchTime", from).and().le("switchTime", to).query();
     }
 }

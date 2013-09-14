@@ -36,7 +36,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         initContextSpinner();
         loadTaskList();
         refreshTimer();
-        initReportButton();
+        initTimelineReportButton();
+        initComparisonReportButton();
         initContextCreationButton();
         initTaskCreationButton();
         initRemoveContextButton();
@@ -49,16 +50,27 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         loadTaskList();
     }
 
-    private void initReportButton() {
-        Button button = (Button) findViewById(R.id.showReportButton);
+    private void initTimelineReportButton() {
+        Button button = (Button) findViewById(R.id.showTimelineReportButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, ReportActivity.class);
+                Intent intent = new Intent(MainActivity.this, TimelineReportActivity.class);
                 startActivity(intent);
             }
         });
     }
+
+    private void initComparisonReportButton() {
+            Button button = (Button) findViewById(R.id.showComparisonReportButton);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(MainActivity.this, ComparisonReportActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
 
     private void initContextSpinner() {
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -80,6 +92,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
                 }
             });
+            TaskContext currentContext = lastTaskSwitch().task.context;
+            spinner.setSelection(contexts.indexOf(currentContext));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

@@ -119,6 +119,7 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                 drawable.setStroke(5, Color.WHITE);
             }
             drawable.setColor(color);
+            drawable.setAlpha(Task.DEFAULT_COLOR_ALPHA);
             return drawable;
         }
     }

@@ -12,11 +12,13 @@ import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.TaskSwitchEvent;
 
 import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Database helper which creates and upgrades the database and provides the DAOs for the app.
  *
- * @author kevingalligan
  */
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
@@ -77,5 +79,23 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             eventsDao = getDao(TaskSwitchEvent.class);
         }
         return eventsDao;
+    }
+
+    public List<TaskSwitchEvent> getTaskEvents(Date startDate, Date endDate) throws SQLException {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        Date from = calendar.getTime();
+
+        calendar.setTime(endDate);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        Date to = calendar.getTime();
+
+        return getEventsDao().queryBuilder().where().ge("switchTime", from).and().le("switchTime", to).query();
     }
 }

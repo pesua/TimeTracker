@@ -109,9 +109,16 @@
         <Button
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/showReport"
-                android:id="@+id/showReportButton"
+                android:text="@string/showTimelineReport"
+                android:id="@+id/showTimelineReportButton"
                 />
+
+        <Button
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/showComparisonReport"
+                android:id="@+id/showComparisonReportButton"
+                android:layout_gravity="center"/>
     </LinearLayout>
 
 </LinearLayout>
