@@ -1,9 +1,10 @@
 package com.timetracker.ui;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
+import android.app.*;
+import android.content.*;
 import android.content.res.Resources;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -25,6 +26,14 @@ import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
+    public static final long ONE_MINUTE = 60 * 1000;
+    public static final int POMODORO_NOTIFICATION_ID = 0;
+    public static final int CURRENT_TASK_NOTIFICATION_ID = 1;
+
+    PendingIntent pomodoroIntent;
+    BroadcastReceiver pomodoroBroadcastReceiver;
+    AlarmManager alarmManager;
+
     /**
      * Called when the activity is first created.
      */
@@ -41,6 +50,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         initContextCreationButton();
         initTaskCreationButton();
         initRemoveContextButton();
+        initPomodoroTimer();
     }
 
     @Override
@@ -48,6 +58,12 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         super.onResume();
         initContextSpinner();
         loadTaskList();
+    }
+
+    protected void onDestroy() {
+        alarmManager.cancel(pomodoroIntent);
+        unregisterReceiver(pomodoroBroadcastReceiver);
+        super.onDestroy();
     }
 
     private void initTimelineReportButton() {
@@ -62,15 +78,15 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     private void initComparisonReportButton() {
-            Button button = (Button) findViewById(R.id.showComparisonReportButton);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(MainActivity.this, ComparisonReportActivity.class);
-                    startActivity(intent);
-                }
-            });
-        }
+        Button button = (Button) findViewById(R.id.showComparisonReportButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, ComparisonReportActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
 
     private void initContextSpinner() {
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -92,8 +108,11 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
                 }
             });
-            TaskContext currentContext = lastTaskSwitch().task.context;
-            spinner.setSelection(contexts.indexOf(currentContext));
+            TaskSwitchEvent switchEvent = lastTaskSwitch();
+            if (switchEvent != null) {
+                TaskContext currentContext = switchEvent.task.context;
+                spinner.setSelection(contexts.indexOf(currentContext));
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -108,7 +127,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                 queryResult = new ArrayList<>();
             } else {
                 queryResult = getHelper().getTaskDao().queryBuilder().orderBy("name", true)
-                                    .where().eq("context_id", id).and().eq("isDeleted", Boolean.FALSE).query();
+                        .where().eq("context_id", id).and().eq("isDeleted", Boolean.FALSE).query();
             }
             final List<Task> tasks = queryResult;
             ListAdapter adapter = new BaseAdapter() {
@@ -284,11 +303,71 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             event.switchTime = new Date();
             getHelper().getEventsDao().create(event);
 
-            List<TaskSwitchEvent> taskSwitchEvents = getHelper().getEventsDao().queryForAll();
-            Log.i(this.getClass().getName(), "Switches: " + taskSwitchEvents);
+            if (task.pomodoroDuration != 0) {
+                startPomodoro(task.pomodoroDuration);
+            }
+            showCurrentTaskNotification(this, task);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void initPomodoroTimer() {
+        pomodoroBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context c, Intent i) {
+                showPomodoroNotification(c);
+            }
+        };
+        String action = "com.timetracker.pomodoroEnd";
+        registerReceiver(pomodoroBroadcastReceiver, new IntentFilter(action));
+        pomodoroIntent = PendingIntent.getBroadcast(this, 0, new Intent(action),
+                0);
+        alarmManager = (AlarmManager) (this.getSystemService(Context.ALARM_SERVICE));
+    }
+
+    private void showPomodoroNotification(Context c) {
+        Intent intent = new Intent(c, MainActivity.class);
+        PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+        Notification noti = new Notification.Builder(this)
+                .setContentTitle("Pomodoro finished")
+                .setContentText("Click to open tracker")
+                .setSmallIcon(R.drawable.icon)
+                .setSound(soundUri)
+                .setContentIntent(pIntent)
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        noti.flags |= Notification.FLAG_AUTO_CANCEL;
+
+        notificationManager.notify(POMODORO_NOTIFICATION_ID, noti);
+    }
+
+    private void showCurrentTaskNotification(Context c, Task task) {
+        Intent intent = new Intent(c, MainActivity.class);
+        PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        Notification notification = new Notification.Builder(this)
+                .setContentTitle("Working on " + task.name)
+                .setContentText("Click to open tracker")
+                .setSmallIcon(R.drawable.icon)
+                .setContentIntent(pIntent)
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        notification.flags |= Notification.FLAG_NO_CLEAR;
+
+        notificationManager.cancel(CURRENT_TASK_NOTIFICATION_ID);
+        notificationManager.notify(CURRENT_TASK_NOTIFICATION_ID, notification);
+    }
+
+    private void startPomodoro(int durationMinutes) {
+        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + durationMinutes * ONE_MINUTE, pomodoroIntent);
     }
 
     private TaskSwitchEvent lastTaskSwitch() {

@@ -34,6 +34,12 @@ public class Task {
     @DatabaseField
     public String tags;
 
+    /**
+     * in minutes
+     */
+    @DatabaseField
+    public Integer pomodoroDuration = 0;
+
     public Task() {
     }
 

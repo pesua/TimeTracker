@@ -15,8 +15,6 @@ import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.persistance.DatabaseHelper;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -49,9 +47,18 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         initColorChoser(task.color);
 
         initSaveButton();
+
+        initDurationPicker();
     }
 
-    private void refreshGrid(){
+    private void initDurationPicker() {
+        TimePicker durationPicker = (TimePicker) findViewById(R.id.durationPicker);
+        durationPicker.setIs24HourView(true);
+        durationPicker.setCurrentMinute(task.pomodoroDuration % 60);
+        durationPicker.setCurrentHour(task.pomodoroDuration / 60);
+    }
+
+    private void refreshGrid() {
         colorsGrid.invalidateViews();
     }
 
@@ -71,7 +78,7 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             }
         }
 
-        public int getSelectedColor(){
+        public int getSelectedColor() {
             return getColors()[selected];
         }
 
@@ -136,7 +143,7 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         colorsGrid.setNumColumns(5);
     }
 
-    private int getSelectedColor(){
+    private int getSelectedColor() {
         ColorChooserAdapter colorChooser = (ColorChooserAdapter) colorsGrid.getAdapter();
         return colorChooser.getSelectedColor();
     }
@@ -158,6 +165,9 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                     } else {
                         task.name = taskName;
                         task.color = getSelectedColor();
+
+                        TimePicker durationPicker = (TimePicker) findViewById(R.id.durationPicker);
+                        task.pomodoroDuration = durationPicker.getCurrentHour() * 60 + durationPicker.getCurrentMinute();
 
                         Spinner contextSpinner = (Spinner) findViewById(R.id.contextSpinner);
                         task.context = (TaskContext) contextSpinner.getSelectedItem();
