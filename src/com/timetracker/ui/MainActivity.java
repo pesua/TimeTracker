@@ -338,7 +338,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         Notification noti = new Notification.Builder(this)
                 .setContentTitle("Pomodoro finished")
                 .setContentText("Click to open tracker")
-                .setSmallIcon(R.drawable.icon)
+                .setSmallIcon(R.drawable.check)
                 .setSound(soundUri)
                 .setContentIntent(pIntent)
                 .build();
@@ -357,7 +357,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         Notification notification = new Notification.Builder(this)
                 .setContentTitle("Working on " + task.name)
                 .setContentText("Click to open tracker")
-                .setSmallIcon(R.drawable.icon)
+                .setSmallIcon(R.drawable.clock)
                 .setContentIntent(pIntent)
                 .build();
 
