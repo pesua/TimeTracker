@@ -101,7 +101,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         long m = time % 60;
         time /= 60;
         long h = time % 60;
-        return String.format("%d:%d", h, m);
+        return String.format("%d:%02d", h, m);
     }
 
 
