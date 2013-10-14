@@ -58,6 +58,9 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         super.onResume();
         initContextSpinner();
         loadTaskList();
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancel(POMODORO_NOTIFICATION_ID);
     }
 
     protected void onDestroy() {
@@ -303,6 +306,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             event.switchTime = new Date();
             getHelper().getEventsDao().create(event);
 
+            stopPomodoro();
             if (task.pomodoroDuration != 0) {
                 startPomodoro(task.pomodoroDuration);
             }
@@ -321,8 +325,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         };
         String action = "com.timetracker.pomodoroEnd";
         registerReceiver(pomodoroBroadcastReceiver, new IntentFilter(action));
-        pomodoroIntent = PendingIntent.getBroadcast(this, 0, new Intent(action),
-                0);
+        pomodoroIntent = PendingIntent.getBroadcast(this, 0, new Intent(action),0);
         alarmManager = (AlarmManager) (this.getSystemService(Context.ALARM_SERVICE));
     }
 
@@ -368,6 +371,12 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
     private void startPomodoro(int durationMinutes) {
         alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + durationMinutes * ONE_MINUTE, pomodoroIntent);
+    }
+
+    private void stopPomodoro() {
+        if (pomodoroIntent != null) {
+            alarmManager.cancel(pomodoroIntent);
+        }
     }
 
     private TaskSwitchEvent lastTaskSwitch() {
