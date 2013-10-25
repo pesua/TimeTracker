@@ -22,6 +22,7 @@ import com.timetracker.domain.persistance.DatabaseHelper;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -171,6 +172,77 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                             refreshTimer();
                         }
                     });
+                    taskStartButton.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            if (task.equals(lastTaskSwitch().task)){
+                                return false;
+                            }
+                            final TimePicker timePicker = new TimePicker(MainActivity.this);
+                            timePicker.setIs24HourView(true);
+                            Calendar now = Calendar.getInstance();
+                            timePicker.setCurrentHour(now.get(Calendar.HOUR_OF_DAY));
+                            timePicker.setCurrentMinute(now.get(Calendar.MINUTE));
+                            Calendar lastSwitch = Calendar.getInstance();
+                            lastSwitch.setTime(lastTaskSwitch().switchTime);
+                            final int switchMinutes = lastSwitch.get(Calendar.HOUR_OF_DAY) * 60 + lastSwitch.get(Calendar.MINUTE);
+                            final int nowMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+
+                            timePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+                                @Override
+                                public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+                                    int minutes = hourOfDay * 60 + minute;
+                                    if (
+                                            (switchMinutes < nowMinutes && (switchMinutes > minutes || minutes > nowMinutes))
+                                                    ||
+                                                    (switchMinutes > nowMinutes && (switchMinutes > minutes && minutes > nowMinutes))
+                                            ) {
+                                        switchToClosestMoment(view, switchMinutes, nowMinutes);
+                                    }
+                                }
+
+                                void switchToClosestMoment(TimePicker picker, int minutes1, int minutes2) {
+                                    int minutes = picker.getCurrentHour() * 60 + picker.getCurrentMinute();
+                                    if (Math.abs(minutes - minutes1) < Math.abs(minutes - minutes2)) {
+                                        picker.setCurrentHour(minutes1 / 60);
+                                        picker.setCurrentMinute(minutes1 % 60);
+                                    } else {
+                                        picker.setCurrentHour(minutes2 / 60);
+                                        picker.setCurrentMinute(minutes2 % 60);
+                                    }
+                                    String msg = getResources().getString(R.string.incorrectBackSwitchTime);
+                                    Toast toast = Toast.makeText(picker.getContext(), msg, Toast.LENGTH_SHORT);
+                                    toast.setDuration(Toast.LENGTH_SHORT);
+                                    toast.show();
+                                }
+                            });
+
+                            AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).setMessage("Create task switch in the past")
+                                    .setView(timePicker)
+                                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            Calendar calendar = Calendar.getInstance();
+                                            int minutes = timePicker.getCurrentHour() * 60 + timePicker.getCurrentMinute();
+                                            if (minutes > nowMinutes) {
+                                                calendar.add(Calendar.DATE, -1);
+                                            }
+                                            calendar.set(Calendar.HOUR_OF_DAY, timePicker.getCurrentHour());
+                                            calendar.set(Calendar.MINUTE, timePicker.getCurrentMinute());
+                                            startTask(task, calendar.getTime());
+                                            refreshTimer();
+                                            dialog.dismiss();
+                                        }
+                                    }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    }).create();
+                            dialog.show();
+                            return true;
+                        }
+                    });
 
                     Button removeTaskButton = (Button) row.findViewById(R.id.removeTaskButton);
                     removeTaskButton.setOnClickListener(new View.OnClickListener() {
@@ -203,7 +275,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
     private void showRemoveDialog(final Task task) {
         Resources res = getResources();
-        String msg = String.format(res.getString(R.string.removeContextDialogText, task.name));
+        String msg = String.format(res.getString(R.string.removeTaskDialogText, task.name));
         AlertDialog dialog = new AlertDialog.Builder(this).setMessage(msg)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
@@ -296,6 +368,10 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     private void startTask(Task task) {
+        startTask(task, new Date());
+    }
+
+    private void startTask(Task task, Date timeStart) {
         try {
             TaskSwitchEvent lastSwitchEvent = lastTaskSwitch();
             if (lastSwitchEvent != null && lastSwitchEvent.task.id.equals(task.id)) {
@@ -303,7 +379,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             }
             TaskSwitchEvent event = new TaskSwitchEvent();
             event.task = task;
-            event.switchTime = new Date();
+            event.switchTime = timeStart;
             getHelper().getEventsDao().create(event);
 
             stopPomodoro();
@@ -325,7 +401,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         };
         String action = "com.timetracker.pomodoroEnd";
         registerReceiver(pomodoroBroadcastReceiver, new IntentFilter(action));
-        pomodoroIntent = PendingIntent.getBroadcast(this, 0, new Intent(action),0);
+        pomodoroIntent = PendingIntent.getBroadcast(this, 0, new Intent(action), 0);
         alarmManager = (AlarmManager) (this.getSystemService(Context.ALARM_SERVICE));
     }
 

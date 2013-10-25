@@ -15,4 +15,6 @@
     <string name="removeContextDialogText">Do you really want to delete context \"%s\"?</string>
     <string name="removeTaskDialogText">Do you really want to delete task \"%s\"?</string>
     <string name="showComparisonReport">Show Aggregate Report</string>
+    <string name="backSwitch">Create task switch in the past</string>
+    <string name="incorrectBackSwitchTime">Time can\'t be earlier than previous task switch or later than current time</string>
 </resources>
