@@ -370,6 +370,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     private void startPomodoro(int durationMinutes) {
+        alarmManager.cancel(pomodoroIntent);
         alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + durationMinutes * ONE_MINUTE, pomodoroIntent);
     }
 
