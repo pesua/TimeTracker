@@ -8,12 +8,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.*;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
-import com.j256.ormlite.dao.GenericRawResults;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
@@ -22,7 +19,6 @@ import com.timetracker.domain.persistance.DatabaseHelper;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -30,6 +26,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     public static final long ONE_MINUTE = 60 * 1000;
     public static final int POMODORO_NOTIFICATION_ID = 0;
     public static final int CURRENT_TASK_NOTIFICATION_ID = 1;
+    private TaskManager taskManager;
 
     PendingIntent pomodoroIntent;
     BroadcastReceiver pomodoroBroadcastReceiver;
@@ -42,6 +39,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        taskManager = new TaskManager(this, getHelper());
 
         initContextSpinner();
         loadTaskList();
@@ -112,7 +111,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
                 }
             });
-            TaskSwitchEvent switchEvent = lastTaskSwitch();
+            TaskSwitchEvent switchEvent = taskManager.getLastTaskSwitch();
             if (switchEvent != null) {
                 TaskContext currentContext = switchEvent.task.context;
                 spinner.setSelection(contexts.indexOf(currentContext));
@@ -122,7 +121,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         }
     }
 
-    private void loadTaskList() {
+    public void loadTaskList() {
         try {
             TaskContext context = getCurrentContext();
             Integer id = context != null ? context.id : null;
@@ -134,138 +133,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                         .where().eq("context_id", id).and().eq("isDeleted", Boolean.FALSE).query();
             }
             final List<Task> tasks = queryResult;
-            ListAdapter adapter = new BaseAdapter() {
-                @Override
-                public int getCount() {
-                    return tasks.size();
-                }
-
-                @Override
-                public Object getItem(int position) {
-                    return tasks.get(position);
-                }
-
-                @Override
-                public long getItemId(int position) {
-                    return position;
-                }
-
-                @Override
-                public View getView(int position, View convertView, ViewGroup parent) {
-                    View row = convertView;
-
-                    if (row == null) {
-                        LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-                        row = inflater.inflate(R.layout.task_list_item, parent, false);
-                    }
-
-                    final Task task = tasks.get(position);
-                    row.setTag(task);
-                    TextView taskName = (TextView) row.findViewById(R.id.taskName);
-                    taskName.setText(task.name);
-
-                    Button taskStartButton = (Button) row.findViewById(R.id.startTask);
-                    taskStartButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            startTask(task);
-                            refreshTimer();
-                        }
-                    });
-                    taskStartButton.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            if (task.equals(lastTaskSwitch().task)){
-                                return false;
-                            }
-                            final TimePicker timePicker = new TimePicker(MainActivity.this);
-                            timePicker.setIs24HourView(true);
-                            Calendar now = Calendar.getInstance();
-                            timePicker.setCurrentHour(now.get(Calendar.HOUR_OF_DAY));
-                            timePicker.setCurrentMinute(now.get(Calendar.MINUTE));
-                            Calendar lastSwitch = Calendar.getInstance();
-                            lastSwitch.setTime(lastTaskSwitch().switchTime);
-                            final int switchMinutes = lastSwitch.get(Calendar.HOUR_OF_DAY) * 60 + lastSwitch.get(Calendar.MINUTE);
-                            final int nowMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
-
-                            timePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
-                                @Override
-                                public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
-                                    int minutes = hourOfDay * 60 + minute;
-                                    if (
-                                            (switchMinutes < nowMinutes && (switchMinutes > minutes || minutes > nowMinutes))
-                                                    ||
-                                                    (switchMinutes > nowMinutes && (switchMinutes > minutes && minutes > nowMinutes))
-                                            ) {
-                                        switchToClosestMoment(view, switchMinutes, nowMinutes);
-                                    }
-                                }
-
-                                void switchToClosestMoment(TimePicker picker, int minutes1, int minutes2) {
-                                    int minutes = picker.getCurrentHour() * 60 + picker.getCurrentMinute();
-                                    if (Math.abs(minutes - minutes1) < Math.abs(minutes - minutes2)) {
-                                        picker.setCurrentHour(minutes1 / 60);
-                                        picker.setCurrentMinute(minutes1 % 60);
-                                    } else {
-                                        picker.setCurrentHour(minutes2 / 60);
-                                        picker.setCurrentMinute(minutes2 % 60);
-                                    }
-                                    String msg = getResources().getString(R.string.incorrectBackSwitchTime);
-                                    Toast toast = Toast.makeText(picker.getContext(), msg, Toast.LENGTH_SHORT);
-                                    toast.setDuration(Toast.LENGTH_SHORT);
-                                    toast.show();
-                                }
-                            });
-
-                            AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).setMessage("Create task switch in the past")
-                                    .setView(timePicker)
-                                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            Calendar calendar = Calendar.getInstance();
-                                            int minutes = timePicker.getCurrentHour() * 60 + timePicker.getCurrentMinute();
-                                            if (minutes > nowMinutes) {
-                                                calendar.add(Calendar.DATE, -1);
-                                            }
-                                            calendar.set(Calendar.HOUR_OF_DAY, timePicker.getCurrentHour());
-                                            calendar.set(Calendar.MINUTE, timePicker.getCurrentMinute());
-                                            startTask(task, calendar.getTime());
-                                            refreshTimer();
-                                            dialog.dismiss();
-                                        }
-                                    }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                        }
-                                    }).create();
-                            dialog.show();
-                            return true;
-                        }
-                    });
-
-                    Button removeTaskButton = (Button) row.findViewById(R.id.removeTaskButton);
-                    removeTaskButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            showRemoveDialog(task);
-                        }
-                    });
-
-                    row.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-
-                            Intent intent = new Intent(MainActivity.this, TaskCreationActivity.class);
-                            intent.putExtra(TaskCreationActivity.CONTEXT_ID, getCurrentContext().id);
-                            intent.putExtra(TaskCreationActivity.TASK_ID, task.id);
-                            startActivity(intent);
-                            return false;
-                        }
-                    });
-                    return row;
-                }
-            };
+            ListAdapter adapter = new TaskList(this).createListAdapter(tasks);
             ListView listView = (ListView) findViewById(R.id.listView);
             listView.setAdapter(adapter);
         } catch (SQLException e) {
@@ -273,33 +141,13 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         }
     }
 
-    private void showRemoveDialog(final Task task) {
-        Resources res = getResources();
-        String msg = String.format(res.getString(R.string.removeTaskDialogText, task.name));
-        AlertDialog dialog = new AlertDialog.Builder(this).setMessage(msg)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        removeTask(task);
-                        loadTaskList();
-                        dialog.dismiss();
-                    }
-                }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                }).create();
-        dialog.show();
-    }
-
-    private TaskContext getCurrentContext() {
+    public TaskContext getCurrentContext() {
         Spinner contextSpinner = (Spinner) findViewById(R.id.spinner);
         return (TaskContext) contextSpinner.getSelectedItem();
     }
 
-    private void refreshTimer() {
-        TaskSwitchEvent lastEvent = lastTaskSwitch();
+    public void refreshTimer() {
+        TaskSwitchEvent lastEvent = taskManager.getLastTaskSwitch();
         if (lastEvent != null) {
             EditText taskName = (EditText) findViewById(R.id.currentTaskName);
             taskName.setText(lastEvent.task.name);
@@ -354,7 +202,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        removeTaskContext(context);
+                        taskManager.removeTaskContext(context);
                         initContextSpinner();
                         dialog.dismiss();
                     }
@@ -365,31 +213,6 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                     }
                 }).create();
         dialog.show();
-    }
-
-    private void startTask(Task task) {
-        startTask(task, new Date());
-    }
-
-    private void startTask(Task task, Date timeStart) {
-        try {
-            TaskSwitchEvent lastSwitchEvent = lastTaskSwitch();
-            if (lastSwitchEvent != null && lastSwitchEvent.task.id.equals(task.id)) {
-                return;
-            }
-            TaskSwitchEvent event = new TaskSwitchEvent();
-            event.task = task;
-            event.switchTime = timeStart;
-            getHelper().getEventsDao().create(event);
-
-            stopPomodoro();
-            if (task.pomodoroDuration != 0) {
-                startPomodoro(task.pomodoroDuration);
-            }
-            showCurrentTaskNotification(this, task);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void initPomodoroTimer() {
@@ -406,7 +229,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     private void showPomodoroNotification(Context c) {
-        Intent intent = new Intent(c, MainActivity.class);
+        Intent intent = this.getIntent();
         PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
@@ -426,8 +249,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         notificationManager.notify(POMODORO_NOTIFICATION_ID, noti);
     }
 
-    private void showCurrentTaskNotification(Context c, Task task) {
-        Intent intent = new Intent(c, MainActivity.class);
+    public void showCurrentTaskNotification(Context c, Task task) {
+        Intent intent = this.getIntent();
         PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         Notification notification = new Notification.Builder(this)
@@ -445,49 +268,19 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         notificationManager.notify(CURRENT_TASK_NOTIFICATION_ID, notification);
     }
 
-    private void startPomodoro(int durationMinutes) {
+    public void startPomodoro(int durationMinutes) {
         alarmManager.cancel(pomodoroIntent);
         alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + durationMinutes * ONE_MINUTE, pomodoroIntent);
     }
 
-    private void stopPomodoro() {
+    public void stopPomodoro() {
         if (pomodoroIntent != null) {
             alarmManager.cancel(pomodoroIntent);
         }
     }
 
-    private TaskSwitchEvent lastTaskSwitch() {
-        try {
-            GenericRawResults<String[]> results = getHelper().getEventsDao()
-                    .queryRaw("select id from task_switch_events where switchTime = (select max(switchTime) from task_switch_events)");
-
-            String[] firstResult = results.getFirstResult();
-            if (firstResult == null) {
-                return null;
-            } else {
-                int lastEventId = Integer.valueOf(firstResult[0]);
-                return getHelper().getEventsDao().queryForId(lastEventId);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public TaskManager getTaskManager() {
+        return taskManager;
     }
 
-    private void removeTaskContext(TaskContext context) {
-        context.isDeleted = true;
-        try {
-            getHelper().getContextDao().update(context);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void removeTask(Task task) {
-        task.isDeleted = true;
-        try {
-            getHelper().getTaskDao().update(task);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
