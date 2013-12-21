@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import com.timetracker.domain.Task;
+import com.timetracker.ui.activities.MainActivity;
+import com.timetracker.ui.activities.TaskCreationActivity;
 
 import java.util.Calendar;
 import java.util.List;
@@ -21,7 +23,7 @@ public class TaskList {
         this.mainActivity = mainActivity;
     }
 
-    BaseAdapter createListAdapter(final List<Task> tasks) {
+    public BaseAdapter createListAdapter(final List<Task> tasks) {
         return new BaseAdapter() {
             @Override
             public int getCount() {

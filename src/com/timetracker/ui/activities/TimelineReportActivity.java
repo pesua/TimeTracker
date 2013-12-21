@@ -1,4 +1,4 @@
-package com.timetracker.ui;
+package com.timetracker.ui.activities;
 
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;

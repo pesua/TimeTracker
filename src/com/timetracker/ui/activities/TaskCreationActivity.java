@@ -1,4 +1,4 @@
-package com.timetracker.ui;
+package com.timetracker.ui.activities;
 
 import android.content.Intent;
 import android.content.res.Resources;

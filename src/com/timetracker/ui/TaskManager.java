@@ -5,6 +5,7 @@ import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
+import com.timetracker.ui.activities.MainActivity;
 
 import java.sql.SQLException;
 import java.util.Date;

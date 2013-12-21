@@ -1,4 +1,4 @@
-package com.timetracker.ui;
+package com.timetracker.ui.activities;
 
 import android.app.*;
 import android.content.*;
@@ -16,6 +16,8 @@ import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
+import com.timetracker.ui.TaskList;
+import com.timetracker.ui.TaskManager;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

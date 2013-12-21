@@ -17,4 +17,12 @@
     <string name="showComparisonReport">Show Aggregate Report</string>
     <string name="backSwitch">Create task switch in the past</string>
     <string name="incorrectBackSwitchTime">Time can\'t be earlier than previous task switch or later than current time</string>
+    <string-array name="intervalChooserLabels">
+        <item>1 day</item>
+        <item>2 days</item>
+        <item>3 days</item>
+        <item>week</item>
+        <item>month</item>
+        <item>year</item>
+    </string-array>
 </resources>

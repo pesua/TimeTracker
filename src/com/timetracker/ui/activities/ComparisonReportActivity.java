@@ -1,4 +1,4 @@
-package com.timetracker.ui;
+package com.timetracker.ui.activities;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -10,10 +10,7 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.ListView;
+import android.widget.*;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
@@ -30,18 +27,64 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
 
     private static final int BAR_HEIGHT = 90;
 
+    private List<AggregationPeriod> aggregationPeriods;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.comparison_report);
-        initBars();
+        initSlider();
     }
 
-    private void initBars() {
+    private void initSlider() {
+        aggregationPeriods = new ArrayList<>();
+        String[] labels = getResources().getStringArray(R.array.intervalChooserLabels);
+        aggregationPeriods.add(new AggregationPeriod(labels[0], 1));
+        aggregationPeriods.add(new AggregationPeriod(labels[1], 2));
+        aggregationPeriods.add(new AggregationPeriod(labels[2], 3));
+        aggregationPeriods.add(new AggregationPeriod(labels[3], 7));
+//        aggregationPeriods.add(new AggregationPeriod(labels[4], 30));
+//        aggregationPeriods.add(new AggregationPeriod(labels[5], 365));
+
+        SeekBar intervalChooser = (SeekBar) findViewById(R.id.reportIntervalChooser);
+        intervalChooser.setMax(aggregationPeriods.size() - 1);
+        int aggregationIndex = intervalChooser.getProgress();
+        updateAggregateLabel(aggregationIndex);
+        intervalChooser.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                updateAggregateLabel(progress);
+                updateBars(ComparisonReportActivity.this.aggregationPeriods.get(progress));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        updateBars(aggregationPeriods.get(aggregationIndex));
+    }
+
+    public void updateAggregateLabel(int n) {
+        TextView chooserLabel = (TextView) findViewById(R.id.intervalChooserLabel);
+        chooserLabel.setText(aggregationPeriods.get(n).label);
+    }
+
+    private void updateBars(AggregationPeriod period) {
         ListView tasksList = (ListView) findViewById(R.id.tasks);
 
-        Date today = new Date();
-        final List<AggregatedTaskItem> reportItems = generateReport(today, today);
+        Date to = new Date();
+        Calendar from = Calendar.getInstance();
+        from.setTime(to);
+        from.add(Calendar.DATE, -(period.days - 1));
+
+        final List<AggregatedTaskItem> reportItems = generateReport(from.getTime(), to);
 
         final long maxDuration = reportItems.get(0).duration;
 
@@ -76,7 +119,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
 
                 AggregatedTaskItem item = reportItems.get(position);
                 view.setText(item.task.name + " " + buildTime(item.duration));
-                BitmapDrawable drawable = getBackgroundBar((int) width, BAR_HEIGHT, (float)item.duration / maxDuration, item.task.color);
+                BitmapDrawable drawable = getBackgroundBar((int) width, BAR_HEIGHT, (float) item.duration / maxDuration, item.task.color);
                 view.setBackground(drawable);
 
                 return view;
@@ -90,7 +133,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         Paint p = new Paint();
         p.setColor(color);
         p.setAlpha(Task.DEFAULT_COLOR_ALPHA);
-        canvas.drawRect(0, 0, portion * width , height, p);
+        canvas.drawRect(0, 0, portion * width, height, p);
         return new BitmapDrawable(getResources(), bitmap);
     }
 
@@ -167,5 +210,15 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
             events.add(0, firstEvent);
         }
         return events;
+    }
+
+    private class AggregationPeriod {
+        int days;
+        String label;
+
+        private AggregationPeriod(String label, int days) {
+            this.label = label;
+            this.days = days;
+        }
     }
 }
