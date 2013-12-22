@@ -6,16 +6,14 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.view.Display;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
+import com.timetracker.util.EmptyListAdapter;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -43,8 +41,8 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         aggregationPeriods.add(new AggregationPeriod(labels[1], 2));
         aggregationPeriods.add(new AggregationPeriod(labels[2], 3));
         aggregationPeriods.add(new AggregationPeriod(labels[3], 7));
-//        aggregationPeriods.add(new AggregationPeriod(labels[4], 30));
-//        aggregationPeriods.add(new AggregationPeriod(labels[5], 365));
+        aggregationPeriods.add(new AggregationPeriod(labels[4], 30));
+        aggregationPeriods.add(new AggregationPeriod(labels[5], 365));
 
         SeekBar intervalChooser = (SeekBar) findViewById(R.id.reportIntervalChooser);
         intervalChooser.setMax(aggregationPeriods.size() - 1);
@@ -54,7 +52,6 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 updateAggregateLabel(progress);
-                updateBars(ComparisonReportActivity.this.aggregationPeriods.get(progress));
             }
 
             @Override
@@ -65,6 +62,25 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
+            }
+        });
+
+        intervalChooser.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        ListView tasksList = (ListView) findViewById(R.id.tasks);
+                        tasksList.setAdapter(new EmptyListAdapter());
+                        //todo add some kind of progressbar
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        SeekBar intervalChooser = (SeekBar) findViewById(R.id.reportIntervalChooser);
+                        int aggregationIndex = intervalChooser.getProgress();
+                        updateBars(aggregationPeriods.get(aggregationIndex));
+                        break;
+                }
+                return false;
             }
         });
 
@@ -79,12 +95,10 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
     private void updateBars(AggregationPeriod period) {
         ListView tasksList = (ListView) findViewById(R.id.tasks);
 
-        Date to = new Date();
         Calendar from = Calendar.getInstance();
-        from.setTime(to);
         from.add(Calendar.DATE, -(period.days - 1));
 
-        final List<AggregatedTaskItem> reportItems = generateReport(from.getTime(), to);
+        final List<AggregatedTaskItem> reportItems = generateReport(from.getTime(), new Date());
 
         final long maxDuration = reportItems.get(0).duration;
 
@@ -143,7 +157,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         time /= 60;
         long m = time % 60;
         time /= 60;
-        long h = time % 60;
+        long h = time;
         return String.format("%d:%02d", h, m);
     }
 
@@ -169,7 +183,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
                 long duration = endTime.getTime() - event.switchTime.getTime();
 
                 if (durations.containsKey(event.task)) {
-                    Long t = durations.remove(event.task);
+                    Long t = durations.get(event.task);
                     durations.put(event.task, t + duration);
                 } else {
                     durations.put(event.task, duration);
