@@ -209,7 +209,7 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         Spinner spinner = (Spinner) findViewById(R.id.contextSpinner);
         try {
             List<TaskContext> contexts = getHelper().getContextDao().queryForAll();
-            ArrayAdapter<TaskContext> dataAdapter = new ArrayAdapter<>(this,
+            ArrayAdapter<TaskContext> dataAdapter = new ArrayAdapter<TaskContext>(this,
                     android.R.layout.simple_spinner_item, contexts);
             dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(dataAdapter);

@@ -25,4 +25,5 @@
         <item>month</item>
         <item>year</item>
     </string-array>
+    <string name="centerButtonDescription">112233</string>
 </resources>

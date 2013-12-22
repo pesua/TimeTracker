@@ -176,7 +176,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         try {
             List<TaskSwitchEvent> events = getPreparedEvents(from, to);
 
-            Map<Task, Long> durations = new HashMap<>();
+            Map<Task, Long> durations = new HashMap<Task, Long>();
             for (int i = 0; i < events.size(); i++) {
                 TaskSwitchEvent event = events.get(i);
                 Date endTime = i < (events.size() - 1) ? events.get(i + 1).switchTime : to;
@@ -189,7 +189,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
                     durations.put(event.task, duration);
                 }
             }
-            List<AggregatedTaskItem> result = new ArrayList<>(durations.size());
+            List<AggregatedTaskItem> result = new ArrayList<AggregatedTaskItem>(durations.size());
             for (Map.Entry<Task, Long> duration : durations.entrySet()) {
                 result.add(new AggregatedTaskItem(duration.getKey(), duration.getValue()));
             }
