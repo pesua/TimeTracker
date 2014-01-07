@@ -1,5 +1,7 @@
 package com.timetracker.ui.activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -13,6 +15,8 @@ import com.timetracker.R;
 import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.persistance.DatabaseHelper;
+import com.timetracker.ui.PomodoroService;
+import com.timetracker.ui.TaskService;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -26,11 +30,16 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     public static final String TASK_ID = "com.timetracker.ui.TASK_ID";
     private Task task;
     private GridView colorsGrid;
+    private TaskService taskService;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.task);
+
+        PomodoroService pomodoroService = new PomodoroService(getApplicationContext());
+        taskService = new TaskService(this, getHelper(), pomodoroService);
+
         Intent intent = getIntent();
         int contextId = intent.getIntExtra(CONTEXT_ID, -1);
         int taskId = intent.getIntExtra(TASK_ID, -1);
@@ -46,9 +55,11 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
         initColorChoser(task.color);
 
+        initDurationPicker();
+
         initSaveButton();
 
-        initDurationPicker();
+        initDeleteButton();
     }
 
     private void initDurationPicker() {
@@ -149,7 +160,7 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     private void initSaveButton() {
-        Button saveButton = (Button) findViewById(R.id.saveButton);
+        View saveButton = findViewById(R.id.saveButton);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -184,6 +195,40 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                 }
             }
         });
+    }
+
+    private void initDeleteButton() {
+        View saveButton = findViewById(R.id.deleteButton);
+        if (task.id == null) {
+            saveButton.setVisibility(View.GONE);
+        } else {
+            saveButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showRemoveDialog(task);
+                }
+            });
+        }
+    }
+
+    private void showRemoveDialog(final Task task) {
+        Resources res = getResources();
+        String msg = String.format(res.getString(com.timetracker.R.string.removeTaskDialogText, task.name));
+        AlertDialog dialog = new AlertDialog.Builder(this).setMessage(msg)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        taskService.removeTask(task);
+                        dialog.dismiss();
+                        finish();
+                    }
+                }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).create();
+        dialog.show();
     }
 
     private TaskContext getContext(int contextId) {

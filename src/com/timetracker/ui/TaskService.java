@@ -1,6 +1,12 @@
 package com.timetracker.ui;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import com.j256.ormlite.dao.GenericRawResults;
+import com.timetracker.R;
 import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.TaskSwitchEvent;
@@ -10,14 +16,18 @@ import com.timetracker.ui.activities.MainActivity;
 import java.sql.SQLException;
 import java.util.Date;
 
-public class TaskManager {
-    private final MainActivity mainActivity;     //todo remove after introducing pomodoro component
-    private final DatabaseHelper databaseHelper;
+public class TaskService {
+    public static final int CURRENT_TASK_NOTIFICATION_ID = 1;
 
-    public TaskManager(MainActivity mainActivity, DatabaseHelper databaseHelper) {
-        this.mainActivity = mainActivity;
+    private final Context applicationContext;
+    private final DatabaseHelper databaseHelper;
+    private final PomodoroService pomodoroService;
+
+    public TaskService(Context context, DatabaseHelper databaseHelper, PomodoroService pomodoroService) {
+        this.applicationContext = context.getApplicationContext();
         this.databaseHelper = databaseHelper;
-    }                                            
+        this.pomodoroService = pomodoroService;
+    }
 
     public void startTask(Task task) {
         startTask(task, new Date());
@@ -34,11 +44,11 @@ public class TaskManager {
             event.switchTime = timeStart;
             databaseHelper.getEventsDao().create(event);
 
-            mainActivity.stopPomodoro();
+            pomodoroService.stopPomodoro();
             if (task.pomodoroDuration != 0) {
-                mainActivity.startPomodoro(task.pomodoroDuration);
+                pomodoroService.startPomodoro(task.pomodoroDuration);
             }
-            mainActivity.showCurrentTaskNotification(mainActivity, task);
+            showCurrentTaskNotification(task);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -77,5 +87,25 @@ public class TaskManager {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void showCurrentTaskNotification(Task task) {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.setClass(applicationContext.getApplicationContext(), MainActivity.class);
+        PendingIntent pIntent = PendingIntent.getActivity(applicationContext, 0, intent, 0);
+
+        Notification notification = new Notification.Builder(applicationContext)
+                .setContentTitle("Working on " + task.name)
+                .setContentText("Click to open tracker")
+                .setSmallIcon(R.drawable.clock)
+                .setContentIntent(pIntent)
+                .build();
+
+        NotificationManager notificationManager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notification.flags |= Notification.FLAG_NO_CLEAR;
+
+        notificationManager.cancel(CURRENT_TASK_NOTIFICATION_ID);
+        notificationManager.notify(CURRENT_TASK_NOTIFICATION_ID, notification);
     }
 }

@@ -40,4 +40,11 @@
             android:text="@string/save"
             android:id="@+id/saveButton"
             android:layout_gravity="center"/>
+
+    <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/delete"
+            android:id="@+id/deleteButton"
+            android:layout_gravity="left|center_vertical"/>
 </LinearLayout>

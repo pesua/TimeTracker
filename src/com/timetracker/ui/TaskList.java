@@ -54,18 +54,18 @@ public class TaskList {
                 TextView taskName = (TextView) row.findViewById(R.id.taskName);
                 taskName.setText(task.name);
 
-                Button taskStartButton = (Button) row.findViewById(R.id.startTask);
-                taskStartButton.setOnClickListener(new View.OnClickListener() {
+                View taskStartView = row;//.findViewById(R.id.editTask);
+                taskStartView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mainActivity.getTaskManager().startTask(task);
+                        mainActivity.getTaskService().startTask(task);
                         mainActivity.refreshTimer();
                     }
                 });
-                taskStartButton.setOnLongClickListener(new View.OnLongClickListener() {
+                taskStartView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if (task.equals(mainActivity.getTaskManager().getLastTaskSwitch().task)) {
+                        if (task.equals(mainActivity.getTaskService().getLastTaskSwitch().task)) {
                             return false;
                         }
                         final TimePicker timePicker = new TimePicker(mainActivity);
@@ -74,7 +74,7 @@ public class TaskList {
                         timePicker.setCurrentHour(now.get(Calendar.HOUR_OF_DAY));
                         timePicker.setCurrentMinute(now.get(Calendar.MINUTE));
                         Calendar lastSwitch = Calendar.getInstance();
-                        lastSwitch.setTime(mainActivity.getTaskManager().getLastTaskSwitch().switchTime);
+                        lastSwitch.setTime(mainActivity.getTaskService().getLastTaskSwitch().switchTime);
                         final int switchMinutes = lastSwitch.get(Calendar.HOUR_OF_DAY) * 60 + lastSwitch.get(Calendar.MINUTE);
                         final int nowMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
 
@@ -119,7 +119,7 @@ public class TaskList {
                                         }
                                         calendar.set(Calendar.HOUR_OF_DAY, timePicker.getCurrentHour());
                                         calendar.set(Calendar.MINUTE, timePicker.getCurrentMinute());
-                                        mainActivity.getTaskManager().startTask(task, calendar.getTime());
+                                        mainActivity.getTaskService().startTask(task, calendar.getTime());
                                         mainActivity.refreshTimer();
                                         dialog.dismiss();
                                     }
@@ -134,47 +134,18 @@ public class TaskList {
                     }
                 });
 
-                Button removeTaskButton = (Button) row.findViewById(R.id.removeTaskButton);
-                removeTaskButton.setOnClickListener(new View.OnClickListener() {
+                row.findViewById(R.id.editTask).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        showRemoveDialog(task);
-                    }
-                });
-
-                row.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
 
                         Intent intent = new Intent(mainActivity, TaskCreationActivity.class);
                         intent.putExtra(TaskCreationActivity.CONTEXT_ID, mainActivity.getCurrentContext().id);
                         intent.putExtra(TaskCreationActivity.TASK_ID, task.id);
                         mainActivity.startActivity(intent);
-                        return false;
                     }
                 });
                 return row;
             }
         };
-    }
-
-    private void showRemoveDialog(final Task task) {
-        Resources res = mainActivity.getResources();
-        String msg = String.format(res.getString(com.timetracker.R.string.removeTaskDialogText, task.name));
-        AlertDialog dialog = new AlertDialog.Builder(mainActivity).setMessage(msg)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mainActivity.getTaskManager().removeTask(task);
-                        mainActivity.loadTaskList();
-                        dialog.dismiss();
-                    }
-                }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                }).create();
-        dialog.show();
     }
 }

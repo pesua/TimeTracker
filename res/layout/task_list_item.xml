@@ -20,15 +20,8 @@
     <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="-"
-            android:id="@+id/removeTaskButton"
-            android:layout_gravity="center"/>
-
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/start_task"
-            android:id="@+id/startTask"
+            android:text="@string/edit_task"
+            android:id="@+id/editTask"
             android:layout_weight="0"
             android:layout_gravity="center_vertical|right"/>
 </LinearLayout>
