@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Generated with http://android-holo-colors.com -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <style name="CoolHoloTheme" parent="android:Theme.Holo">
+
+    <item name="android:editTextBackground">@drawable/coolholotheme_edit_text_holo_dark</item>
+
+    <item name="android:textColorHighlight">#99799300</item>
+    <item name="android:textSelectHandleLeft">@drawable/coolholotheme_text_select_handle_left</item>
+    <item name="android:textSelectHandleRight">@drawable/coolholotheme_text_select_handle_right</item>
+    <item name="android:textSelectHandle">@drawable/coolholotheme_text_select_handle_middle</item>
+
+    <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewCoolHoloTheme</item>
+
+    <item name="android:listChoiceIndicatorMultiple">@drawable/coolholotheme_btn_check_holo_dark</item>
+
+    <item name="android:listChoiceIndicatorSingle">@drawable/coolholotheme_btn_radio_holo_dark</item>
+
+    <item name="android:buttonStyle">@style/ButtonCoolHoloTheme</item>
+
+    <item name="android:imageButtonStyle">@style/ImageButtonCoolHoloTheme</item>
+
+    <item name="android:dropDownSpinnerStyle">@style/SpinnerCoolHoloTheme</item>
+
+    <item name="android:progressBarStyleHorizontal">@style/ProgressBarCoolHoloTheme</item>
+
+    <item name="android:seekBarStyle">@style/SeekBarCoolHoloTheme</item>
+
+    <item name="android:ratingBarStyle">@style/RatingBarCoolHoloTheme</item>
+
+    <item name="android:ratingBarStyleIndicator">@style/RatingBarBigCoolHoloTheme</item>
+
+    <item name="android:ratingBarStyleSmall">@style/RatingBarSmallCoolHoloTheme</item>
+
+    <item name="android:buttonStyleToggle">@style/ToggleCoolHoloTheme</item>
+
+    <item name="android:listChoiceBackgroundIndicator">@drawable/coolholotheme_list_selector_holo_dark</item>
+
+    <item name="android:activatedBackgroundIndicator">@drawable/coolholotheme_activated_background_holo_dark</item>
+
+    <item name="android:fastScrollThumbDrawable">@drawable/coolholotheme_fastscroll_thumb_holo</item>
+
+    <item name="android:actionBarStyle">@style/MyActionBar</item>
+
+  </style>
+
+</resources>

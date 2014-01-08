@@ -57,7 +57,8 @@
                 android:id="@+id/textView1"
                 android:layout_gravity="center|left"
                 android:paddingLeft="5dp"
-                android:paddingRight="5dp"/>
+                android:textStyle="bold"
+                android:textSize="@dimen/current_task_text_size"/>
 
         <EditText
                 android:layout_width="fill_parent"
@@ -67,22 +68,28 @@
                 android:editable="false"
                 android:text=" "
                 android:inputType="none"
-                android:layout_weight="1"/>
+                android:layout_weight="1"
+                android:textStyle="bold"
+                android:textSize="@dimen/current_task_text_size"/>
 
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/for_label"
                 android:id="@+id/textView2"
-                android:paddingLeft="5dp"
-                android:paddingRight="5dp"/>
+                android:layout_gravity="center|left"
+                android:paddingRight="5dp"
+                android:textStyle="bold"
+                android:textSize="@dimen/current_task_text_size"/>
 
         <Chronometer
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/chronometer"
                 android:autoText="false"
-                />
+                android:layout_gravity="center|left"
+                android:textStyle="bold"
+                android:textSize="@dimen/current_task_text_size"/>
 
     </LinearLayout>
 
