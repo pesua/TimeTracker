@@ -29,19 +29,30 @@
                 android:spinnerMode="dropdown"
                 android:layout_weight="1"/>
 
-        <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="-"
-                android:id="@+id/removeContextButton"
-                android:layout_gravity="center"/>
-
-        <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="+"
+        <ImageButton
+                android:layout_width="@dimen/button_image_size"
+                android:layout_height="@dimen/button_image_size"
                 android:id="@+id/createContextButton"
-                android:layout_gravity="center"/>
+                android:layout_gravity="center_vertical|right"
+                android:layout_weight="0"
+                android:padding="@dimen/button_image_padding"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/edit_task"
+                android:src="@drawable/doc_plus"/>
+
+        <ImageButton
+                android:layout_width="@dimen/button_image_size"
+                android:layout_height="@dimen/button_image_size"
+                android:id="@+id/removeContextButton"
+                android:layout_gravity="center_vertical|right"
+                android:layout_weight="0"
+                android:padding="@dimen/button_image_padding"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/edit_task"
+                android:src="@drawable/doc_minus"/>
+
     </LinearLayout>
 
     <LinearLayout
@@ -50,15 +61,13 @@
             android:layout_height="wrap_content"
             >
 
-        <TextView
+        <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/working_on"
-                android:id="@+id/textView1"
-                android:layout_gravity="center|left"
-                android:paddingLeft="5dp"
-                android:textStyle="bold"
-                android:textSize="@dimen/current_task_text_size"/>
+                android:id="@+id/imageView"
+                android:layout_gravity="center"
+                android:src="@drawable/playback_play"
+                android:contentDescription="@string/working_on"/>
 
         <EditText
                 android:layout_width="fill_parent"
@@ -69,16 +78,6 @@
                 android:text=" "
                 android:inputType="none"
                 android:layout_weight="1"
-                android:textStyle="bold"
-                android:textSize="@dimen/current_task_text_size"/>
-
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/for_label"
-                android:id="@+id/textView2"
-                android:layout_gravity="center|left"
-                android:paddingRight="5dp"
                 android:textStyle="bold"
                 android:textSize="@dimen/current_task_text_size"/>
 

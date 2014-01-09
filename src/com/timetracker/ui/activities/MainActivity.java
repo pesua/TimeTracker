@@ -158,7 +158,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     private void initContextCreationButton() {
-        Button button = (Button) findViewById(R.id.createContextButton);
+        View button = findViewById(R.id.createContextButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -169,7 +169,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     private void initTaskCreationButton() {
-        Button button = (Button) findViewById(R.id.createTaskButton);
+        View button = findViewById(R.id.createTaskButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -182,7 +182,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     private void initRemoveContextButton() {
-        Button removeContextButton = (Button) findViewById(R.id.removeContextButton);
+        View removeContextButton = findViewById(R.id.removeContextButton);
         removeContextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
