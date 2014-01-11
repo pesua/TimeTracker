@@ -6,7 +6,8 @@
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:orientation="horizontal"
-              android:layout_gravity="left|top">
+              android:layout_gravity="left|top"
+              android:background="@drawable/task_list_item">
 
     <TextView
             android:layout_width="fill_parent"

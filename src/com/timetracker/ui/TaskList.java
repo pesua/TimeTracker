@@ -1,13 +1,11 @@
 package com.timetracker.ui;
 
+import android.graphics.drawable.TransitionDrawable;
+import android.view.*;
 import com.timetracker.R;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.*;
 import com.timetracker.domain.Task;
 import com.timetracker.ui.activities.MainActivity;
@@ -54,7 +52,22 @@ public class TaskList {
                 TextView taskName = (TextView) row.findViewById(R.id.taskName);
                 taskName.setText(task.name);
 
-                View taskStartView = row;//.findViewById(R.id.editTask);
+                final View taskStartView = row;//.findViewById(R.id.editTask);
+                taskStartView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        int actionCode = event.getAction();
+                        TransitionDrawable drawable = (TransitionDrawable) taskStartView.getBackground();
+                        if (actionCode == MotionEvent.ACTION_DOWN) {
+                            drawable.startTransition(ViewConfiguration.getLongPressTimeout());
+                        } else if (actionCode == MotionEvent.ACTION_UP ||
+                                actionCode == MotionEvent.ACTION_MOVE ||
+                                actionCode == MotionEvent.ACTION_CANCEL) {
+                            drawable.resetTransition();
+                        }
+                        return false;
+                    }
+                });
                 taskStartView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -66,6 +79,8 @@ public class TaskList {
                     @Override
                     public boolean onLongClick(View v) {
                         if (task.equals(mainActivity.getTaskService().getLastTaskSwitch().task)) {
+                            TransitionDrawable drawable = (TransitionDrawable) taskStartView.getBackground();
+                            drawable.resetTransition();
                             return false;
                         }
                         final TimePicker timePicker = new TimePicker(mainActivity);
