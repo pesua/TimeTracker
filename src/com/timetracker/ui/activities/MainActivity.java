@@ -3,8 +3,6 @@ package com.timetracker.ui.activities;
 import android.app.*;
 import android.content.*;
 import android.content.res.Resources;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -63,7 +61,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         Intent intent = null;
         switch (item.getItemId()) {
             case R.id.showTimelineReportButton:
-                intent = new Intent(MainActivity.this, TimelineReportActivity.class);
+                intent = new Intent(MainActivity.this, TimelinePagerActivity.class);
                 break;
             case R.id.showComparisonReportButton:
                 intent = new Intent(MainActivity.this, ComparisonReportActivity.class);

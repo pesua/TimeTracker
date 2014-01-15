@@ -1,12 +1,17 @@
 package com.timetracker.ui.activities;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
@@ -21,23 +26,29 @@ import java.util.List;
 /**
  * Created by Anton Chernetskij
  */
-public class TimelineReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
+public class TimelineReportFragment extends Fragment {
+
+    public static final String ARG_OBJECT = "object";
+    private View view;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.timeline_report);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
+        view = inflater.inflate(R.layout.timeline_report, container, false);
+        Bundle args = getArguments();
+        Date date = new Date(args.getLong(ARG_OBJECT));
 
         int hourHeight = 60;    //todo add zoom
         initTimeRuler(hourHeight);
-        initTasksStack(hourHeight, new Date());
+        initTasksStack(hourHeight, date);
+        return view;
     }
 
     private void initTimeRuler(int hourHeight) {
-        LinearLayout ruler = (LinearLayout) findViewById(R.id.timeRuler);
+        LinearLayout ruler = (LinearLayout) view.findViewById(R.id.timeRuler);
 
         for (int i = 0; i < 24; i++) {
-            TextView textView = new TextView(this);
+            TextView textView = new TextView(view.getContext());
             textView.setText(String.format("%2d:00", i));
             textView.setHeight(hourHeight);
             ruler.addView(textView);
@@ -61,9 +72,9 @@ public class TimelineReportActivity extends OrmLiteBaseActivity<DatabaseHelper> 
             int hours = 0;
             int minutes = 0;
 
-            LinearLayout tasksLine = (LinearLayout) findViewById(R.id.tasksLine);
+            LinearLayout tasksLine = (LinearLayout) view.findViewById(R.id.tasksLine);
             for (TaskSwitchEvent event : events) {
-                TextView taskBox = new TextView(this);
+                TextView taskBox = new TextView(view.getContext());
                 if (currentTask != null) {
                     taskBox.setText(currentTask.name);
                     taskBox.setBackground(getFill(currentTask.color));
@@ -80,7 +91,7 @@ public class TimelineReportActivity extends OrmLiteBaseActivity<DatabaseHelper> 
                 minutes = calendar.get(Calendar.MINUTE);
                 currentTask = event.task;
             }
-            TextView taskBox = new TextView(this);
+            TextView taskBox = new TextView(view.getContext());
             if (currentTask != null) {
                 taskBox.setText(currentTask.name);
                 taskBox.setBackground(getFill(currentTask.color));
@@ -111,5 +122,9 @@ public class TimelineReportActivity extends OrmLiteBaseActivity<DatabaseHelper> 
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.gravity = Gravity.CENTER;
         return params;
+    }
+
+    private DatabaseHelper getHelper(){
+        return OpenHelperManager.getHelper(view.getContext(), DatabaseHelper.class);
     }
 }

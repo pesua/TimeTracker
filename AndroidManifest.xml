@@ -19,27 +19,23 @@
         </activity>
 
         <activity
-                android:name=".ui.activities.TimelineReportActivity"
-                android:label="@string/app_name">
-        </activity>
-
-
-        <activity
                 android:name=".ui.activities.ContextCreationActivity"
-                android:label="@string/app_name">
-        </activity>
+                android:label="@string/app_name"/>
 
 
         <activity
                 android:name=".ui.activities.TaskCreationActivity"
-                android:label="@string/app_name">
-        </activity>
+                android:label="@string/app_name"/>
 
 
         <activity
                 android:name=".ui.activities.ComparisonReportActivity"
-                android:label="@string/app_name">
-        </activity>
+                android:label="@string/app_name"/>
+
+
+        <activity
+                android:name=".ui.activities.TimelinePagerActivity"
+                android:label="@string/app_name"/>
 
     </application>
 </manifest>

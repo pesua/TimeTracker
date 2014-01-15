@@ -56,7 +56,7 @@ public class TaskList {
                 taskStartView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
-                        int actionCode = event.getAction();
+                        int actionCode = event.getAction(); //todo don't start transition on active task
                         TransitionDrawable drawable = (TransitionDrawable) taskStartView.getBackground();
                         if (actionCode == MotionEvent.ACTION_DOWN) {
                             drawable.startTransition(ViewConfiguration.getLongPressTimeout());
