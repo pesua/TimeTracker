@@ -5,7 +5,7 @@
     <string name="working_on">Working on</string>
     <string name="for_label">for</string>
     <string name="edit_task">Edit</string>
-    <string name="showTimelineReport">Show Timeline Report</string>
+    <string name="showTimelineReport">Timeline Report</string>
     <string name="createContext">Create new context</string>
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
@@ -15,7 +15,7 @@
     <string name="emptyName">Name can\'t be empty.</string>
     <string name="removeContextDialogText">Do you really want to delete context \"%s\"?</string>
     <string name="removeTaskDialogText">Do you really want to delete task \"%s\"?</string>
-    <string name="showComparisonReport">Show Aggregate Report</string>
+    <string name="showComparisonReport">Aggregate Report</string>
     <string name="backSwitch">Create task switch in the past</string>
     <string name="incorrectBackSwitchTime">Time can\'t be earlier than previous task switch or later than current time</string>
     <string-array name="intervalChooserLabels">
@@ -26,12 +26,4 @@
         <item>month</item>
         <item>year</item>
     </string-array>
-
-
-
-
-    <string name="dummy_section_text">Section %1d is just a dummy section.</string>
-
-    <string name="demo_external_activity">Demo External Activity</string>
-    <string name="demo_collection">Demo Collection</string>
 </resources>

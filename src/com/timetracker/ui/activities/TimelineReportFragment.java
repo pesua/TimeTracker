@@ -113,7 +113,7 @@ public class TimelineReportFragment extends Fragment {
         drawable.setShape(GradientDrawable.RECTANGLE);
         drawable.setStroke(1, Color.WHITE);
         drawable.setColor(color);
-        drawable.setAlpha(Task.DEFAULT_COLOR_ALPHA);
+//        drawable.setAlpha(Task.DEFAULT_COLOR_ALPHA);     todo fix performance issue here
         return drawable;
     }
 
