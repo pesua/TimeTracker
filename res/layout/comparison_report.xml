@@ -24,13 +24,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
                 android:text=""
-                android:id="@+id/intervalChooserLabel"/>
+                android:id="@+id/intervalChooserLabel"
+                android:textStyle="bold"
+                android:textSize="@dimen/current_task_text_size"/>
 
     </LinearLayout>
 
-    <ListView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/tasks"/>
+    <ListView android:id="@+id/tasks" android:orientation="horizontal"
+                          android:layout_width="fill_parent" android:layout_height="0dip" android:layout_weight="1"/>
 
 </LinearLayout>

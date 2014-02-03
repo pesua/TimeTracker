@@ -1,9 +1,6 @@
 package com.timetracker.ui.activities;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Point;
+import android.graphics.*;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.view.*;
@@ -11,11 +8,8 @@ import android.widget.*;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
-import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
 import com.timetracker.util.EmptyListAdapter;
-
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -24,6 +18,7 @@ import java.util.*;
 public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
     private static final int BAR_HEIGHT = 90;
+    private final ReportGenerator reportGenerator = new ReportGenerator();
 
     private List<AggregationPeriod> aggregationPeriods;
 
@@ -31,7 +26,9 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.comparison_report);
+
         initSlider();
+        updatePlot(aggregationPeriods.get(0));
     }
 
     private void initSlider() {
@@ -68,7 +65,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         intervalChooser.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()){
+                switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         ListView tasksList = (ListView) findViewById(R.id.tasks);
                         tasksList.setAdapter(new EmptyListAdapter());
@@ -77,14 +74,12 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
                     case MotionEvent.ACTION_UP:
                         SeekBar intervalChooser = (SeekBar) findViewById(R.id.reportIntervalChooser);
                         int aggregationIndex = intervalChooser.getProgress();
-                        updateBars(aggregationPeriods.get(aggregationIndex));
+                        updatePlot(aggregationPeriods.get(aggregationIndex));
                         break;
                 }
                 return false;
             }
         });
-
-        updateBars(aggregationPeriods.get(aggregationIndex));
     }
 
     public void updateAggregateLabel(int n) {
@@ -92,15 +87,51 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         chooserLabel.setText(aggregationPeriods.get(n).label);
     }
 
-    private void updateBars(AggregationPeriod period) {
-        ListView tasksList = (ListView) findViewById(R.id.tasks);
+    private class AggregationPeriod {
 
+        int days;
+        String label;
+
+        private AggregationPeriod(String label, int days) {
+            this.label = label;
+            this.days = days;
+        }
+
+    }
+
+    private void updatePlot(AggregationPeriod period) {
         Calendar from = Calendar.getInstance();
         from.add(Calendar.DATE, -(period.days - 1));
 
-        final List<AggregatedTaskItem> reportItems = generateReport(from.getTime(), new Date());
+        Date timeFrom = from.getTime();
+        List<ReportGenerator.AggregatedTaskItem> currentPeriodReport = reportGenerator.generateReport(timeFrom, new Date(), this);
 
-        final long maxDuration = reportItems.get(0).duration;
+        from.add(Calendar.DATE, -period.days);
+        List<ReportGenerator.AggregatedTaskItem> previousPeriodReport = reportGenerator.generateReport(from.getTime(), timeFrom, this);
+
+        long[] previousPeriodTime = getCorrespondingTime(currentPeriodReport, previousPeriodReport);
+        displayChart(currentPeriodReport, previousPeriodTime, period.label);
+    }
+
+    private long[] getCorrespondingTime(List<ReportGenerator.AggregatedTaskItem> currentPeriodReport,
+                                        List<ReportGenerator.AggregatedTaskItem> previousPeriodReport) {
+        long[] result = new long[currentPeriodReport.size()];
+        for (int i = 0; i < currentPeriodReport.size(); i++) {
+            ReportGenerator.AggregatedTaskItem item = currentPeriodReport.get(i);
+            for (ReportGenerator.AggregatedTaskItem correspondingItem : previousPeriodReport) {
+                if (item.task.id == correspondingItem.task.id) {
+                    result[i] = correspondingItem.duration;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    private void displayChart(final List<ReportGenerator.AggregatedTaskItem> currentPeriodReport,
+                              final long[] previousPeriodDurations, String periodLabel) {
+        ListView tasksList = (ListView) findViewById(R.id.tasks);
+        final long maxDuration = Math.max(currentPeriodReport.get(0).duration, previousPeriodDurations[0]);
 
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -111,12 +142,12 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         tasksList.setAdapter(new BaseAdapter() {
             @Override
             public int getCount() {
-                return reportItems.size();
+                return currentPeriodReport.size();
             }
 
             @Override
             public Object getItem(int position) {
-                return reportItems.get(position);
+                return currentPeriodReport.get(position);
             }
 
             @Override
@@ -131,9 +162,12 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
                 view.setHeight(BAR_HEIGHT);
                 view.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, BAR_HEIGHT));
 
-                AggregatedTaskItem item = reportItems.get(position);
-                view.setText(item.task.name + " " + buildTime(item.duration));
-                BitmapDrawable drawable = getBackgroundBar((int) width, BAR_HEIGHT, (float) item.duration / maxDuration, item.task.color);
+                ReportGenerator.AggregatedTaskItem currentPeriodItem = currentPeriodReport.get(position);
+                view.setText(currentPeriodItem.task.name + " " +
+                        buildTime(currentPeriodItem.duration) + "/" +
+                        buildTime(previousPeriodDurations[position]));
+                BitmapDrawable drawable = getBackgroundBar((int) width, BAR_HEIGHT, (double) currentPeriodItem.duration / maxDuration,
+                        (double) previousPeriodDurations[position] / maxDuration, currentPeriodItem.task.color);
                 view.setBackground(drawable);
 
                 return view;
@@ -141,13 +175,22 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         });
     }
 
-    private BitmapDrawable getBackgroundBar(int width, int height, float portion, int color) {
+    private BitmapDrawable getBackgroundBar(int width, int height, double currentAmount, double previousAmount, int color) {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         Paint p = new Paint();
         p.setColor(color);
         p.setAlpha(Task.DEFAULT_COLOR_ALPHA);
-        canvas.drawRect(0, 0, portion * width, height, p);
+        canvas.drawRect(0, 0, (float) (currentAmount * width), height, p);
+
+        float x = (float) (previousAmount * width);
+        Paint p2 = new Paint();
+        p2.setColor(Color.WHITE);
+        p2.setAlpha(Task.DEFAULT_COLOR_ALPHA);
+        p2.setStrokeWidth(4);
+
+        canvas.drawLine(x, 0, x, height, p2);
+
         return new BitmapDrawable(getResources(), bitmap);
     }
 
@@ -159,80 +202,5 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         time /= 60;
         long h = time;
         return String.format("%d:%02d", h, m);
-    }
-
-
-    private class AggregatedTaskItem {
-        public Task task;
-        public long duration;
-
-        private AggregatedTaskItem(Task task, long duration) {
-            this.task = task;
-            this.duration = duration;
-        }
-    }
-
-    private List<AggregatedTaskItem> generateReport(Date from, Date to) {
-        try {
-            List<TaskSwitchEvent> events = getPreparedEvents(from, to);
-
-            Map<Task, Long> durations = new HashMap<>();
-            for (int i = 0; i < events.size(); i++) {
-                TaskSwitchEvent event = events.get(i);
-                Date endTime = i < (events.size() - 1) ? events.get(i + 1).switchTime : to;
-                long duration = endTime.getTime() - event.switchTime.getTime();
-
-                if (durations.containsKey(event.task)) {
-                    Long t = durations.get(event.task);
-                    durations.put(event.task, t + duration);
-                } else {
-                    durations.put(event.task, duration);
-                }
-            }
-            List<AggregatedTaskItem> result = new ArrayList<>(durations.size());
-            for (Map.Entry<Task, Long> duration : durations.entrySet()) {
-                result.add(new AggregatedTaskItem(duration.getKey(), duration.getValue()));
-            }
-            Collections.sort(result, new Comparator<AggregatedTaskItem>() {
-                @Override
-                public int compare(AggregatedTaskItem lhs, AggregatedTaskItem rhs) {
-                    return -Long.valueOf(lhs.duration).compareTo(rhs.duration);
-                }
-            });
-            return result;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private List<TaskSwitchEvent> getPreparedEvents(Date from, Date to) throws SQLException {
-        List<TaskSwitchEvent> events = getHelper().getTaskEvents(from, to);
-
-        TaskSwitchEvent firstEvent = null;
-        Integer firstEventId = events.get(0).id;
-        if (firstEventId > 1) {
-            firstEvent = getHelper().getEventsDao().queryForId(firstEventId - 1);
-        }
-
-        if (firstEvent != null) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(from);
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            firstEvent.switchTime = calendar.getTime();
-            events.add(0, firstEvent);
-        }
-        return events;
-    }
-
-    private class AggregationPeriod {
-        int days;
-        String label;
-
-        private AggregationPeriod(String label, int days) {
-            this.label = label;
-            this.days = days;
-        }
     }
 }

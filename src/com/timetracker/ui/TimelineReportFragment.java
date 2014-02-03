@@ -1,4 +1,4 @@
-package com.timetracker.ui.activities;
+package com.timetracker.ui;
 
 import android.app.Activity;
 import android.graphics.Color;
