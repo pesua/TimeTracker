@@ -66,6 +66,9 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             case R.id.showComparisonReportButton:
                 intent = new Intent(MainActivity.this, ComparisonReportActivity.class);
                 break;
+            case R.id.plotButton:
+                intent = new Intent(MainActivity.this, BarPlotExampleActivity.class);
+                break;
         }
         startActivity(intent);
         return true;

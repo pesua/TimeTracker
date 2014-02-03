@@ -5,11 +5,24 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.view.*;
 import android.widget.*;
+import com.androidplot.xy.*;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
+import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
 import com.timetracker.util.EmptyListAdapter;
+import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
+import org.achartengine.chart.BarChart;
+import org.achartengine.model.CategorySeries;
+import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.renderer.SimpleSeriesRenderer;
+import org.achartengine.renderer.XYMultipleSeriesRenderer;
+
+import java.text.FieldPosition;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
 import java.util.*;
 
 /**
@@ -21,6 +34,21 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
     private final ReportGenerator reportGenerator = new ReportGenerator();
 
     private List<AggregationPeriod> aggregationPeriods;
+    private XYPlot plot;
+    private BarFormatter formatter1;
+    private BarFormatter formatter2;
+
+
+    private List<ReportGenerator.AggregatedTaskItem> currentPeriodReport;
+    private List<ReportGenerator.AggregatedTaskItem> previousPeriodReport;
+
+
+    /**
+     * The chart view that displays the data.
+     */
+    private GraphicalView chartView;
+    private XYMultipleSeriesDataset dataset;
+    private XYMultipleSeriesRenderer seriesRenderer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -28,6 +56,8 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         setContentView(R.layout.comparison_report);
 
         initSlider();
+        initPlot();
+//        initEnotherPlot();
         updatePlot(aggregationPeriods.get(0));
     }
 
@@ -67,8 +97,8 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        ListView tasksList = (ListView) findViewById(R.id.tasks);
-                        tasksList.setAdapter(new EmptyListAdapter());
+//                        ListView tasksList = (ListView) findViewById(R.id.tasks);
+//                        tasksList.setAdapter(new EmptyListAdapter());
                         //todo add some kind of progressbar
                         break;
                     case MotionEvent.ACTION_UP:
@@ -99,18 +129,78 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
 
     }
 
+    private void initPlot() {
+
+        formatter1 = new BarFormatter(Color.argb(200, 100, 150, 100), Color.LTGRAY);
+
+        formatter2 = new BarFormatter(Color.argb(200, 100, 100, 150), Color.LTGRAY);
+
+        plot = (XYPlot) findViewById(R.id.comparisionBarChart);
+
+        plot.setTicksPerRangeLabel(1);
+        plot.setRangeLowerBoundary(0, BoundaryMode.FIXED);
+        plot.getGraphWidget().setGridPadding(30, 10, 30, 0);
+
+        plot.setTicksPerDomainLabel(2);
+
+
+        plot.setDomainValueFormat(new NumberFormat() {
+            @Override
+            public StringBuffer format(double value, StringBuffer buffer, FieldPosition field) {
+                if (value >= 0 && value < currentPeriodReport.size()) {
+                    return new StringBuffer(currentPeriodReport.get((int) value).task.name);
+                } else {
+                    return new StringBuffer();
+                }
+            }
+
+            @Override
+            public StringBuffer format(long value, StringBuffer buffer, FieldPosition field) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Number parse(String string, ParsePosition position) {
+                throw new UnsupportedOperationException();
+            }
+        });
+
+//        plot.setRangeValueFormat(new NumberFormat() {
+//            @Override
+//            public StringBuffer format(double value, StringBuffer buffer, FieldPosition field) {
+//                throw new UnsupportedOperationException();
+//            }
+//
+//            @Override
+//            public StringBuffer format(long value, StringBuffer buffer, FieldPosition field) {
+//                int hours = (int) (value / 60);
+//                int minutes = (int) (value % 60);
+//                StringBuffer buf = new StringBuffer();
+//                buf.append(hours).append(":").append(minutes);
+//                return buf;
+//            }
+//
+//            @Override
+//            public Number parse(String string, ParsePosition position) {
+//                throw new UnsupportedOperationException();
+//            }
+//        });
+
+
+    }
+
     private void updatePlot(AggregationPeriod period) {
         Calendar from = Calendar.getInstance();
         from.add(Calendar.DATE, -(period.days - 1));
 
         Date timeFrom = from.getTime();
-        List<ReportGenerator.AggregatedTaskItem> currentPeriodReport = reportGenerator.generateReport(timeFrom, new Date(), this);
+        currentPeriodReport = reportGenerator.generateReport(timeFrom, new Date(), this);
 
         from.add(Calendar.DATE, -period.days);
-        List<ReportGenerator.AggregatedTaskItem> previousPeriodReport = reportGenerator.generateReport(from.getTime(), timeFrom, this);
+        previousPeriodReport = reportGenerator.generateReport(from.getTime(), timeFrom, this);
 
         long[] previousPeriodTime = getCorrespondingTime(currentPeriodReport, previousPeriodReport);
-        displayChart(currentPeriodReport, previousPeriodTime, period.label);
+        displayChart1(currentPeriodReport, previousPeriodTime, period.label);
     }
 
     private long[] getCorrespondingTime(List<ReportGenerator.AggregatedTaskItem> currentPeriodReport,
@@ -130,7 +220,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
 
     private void displayChart(final List<ReportGenerator.AggregatedTaskItem> currentPeriodReport,
                               final long[] previousPeriodDurations, String periodLabel) {
-        ListView tasksList = (ListView) findViewById(R.id.tasks);
+        ListView tasksList = (ListView) findViewById(/*R.id.tasks*/0);
         final long maxDuration = Math.max(currentPeriodReport.get(0).duration, previousPeriodDurations[0]);
 
         Display display = getWindowManager().getDefaultDisplay();
@@ -202,5 +292,142 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
         time /= 60;
         long h = time;
         return String.format("%d:%02d", h, m);
+    }
+
+    private void displayChart1(List<ReportGenerator.AggregatedTaskItem> currentPeriodReport,
+                               long[] previousPeriodReport, String periodLabel) {
+
+        for (XYSeries setElement : plot.getSeriesSet()) {
+            plot.removeSeries(setElement);
+        }
+
+        Number[] values1 = getSeriesData(currentPeriodReport);
+        XYSeries series1 = new SimpleXYSeries(Arrays.asList(values1), SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "This " + periodLabel);
+
+        Number[] values2 = getSeriesData(previousPeriodReport);
+        XYSeries series2 = new SimpleXYSeries(Arrays.asList(values2), SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "Previous " + periodLabel);
+
+        plot.addSeries(series1, formatter1);
+        plot.addSeries(series2, formatter2);
+
+        BarRenderer renderer = (BarRenderer) plot.getRenderer(BarRenderer.class);
+        renderer.setBarRenderStyle(BarRenderer.BarRenderStyle.SIDE_BY_SIDE);
+        renderer.setBarWidthStyle(BarRenderer.BarWidthStyle.FIXED_WIDTH);
+        renderer.setBarWidth(60);
+        renderer.setBarGap(10);
+
+        plot.redraw();
+    }
+
+    private Number[] getSeriesData(List<ReportGenerator.AggregatedTaskItem> reportItems) {
+        Number[] values = new Number[reportItems.size()];
+        for (int i = 0; i < reportItems.size(); i++) {
+            ReportGenerator.AggregatedTaskItem item = reportItems.get(i);
+            values[i] = item.duration;
+        }
+        return values;
+    }
+
+    private Number[] getSeriesData(long[] previousPeriodReport) {
+        Number[] result = new Number[previousPeriodReport.length];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = previousPeriodReport[i];
+        }
+        return new Number[0];
+    }
+
+
+    //-------------------
+
+
+    private void initEnotherPlot() {
+        seriesRenderer = new XYMultipleSeriesRenderer();
+
+        seriesRenderer.setXTitle("Tasks");
+        seriesRenderer.setYTitle("Time");
+        seriesRenderer.setAxisTitleTextSize(40);
+
+        seriesRenderer.setChartTitle("Comparision report");
+        seriesRenderer.setChartTitleTextSize(60);
+        seriesRenderer.setLabelsTextSize(40);
+        seriesRenderer.setLegendTextSize(40);
+
+        seriesRenderer.setBarSpacing(1);
+        seriesRenderer.setBarWidth(20);
+
+        seriesRenderer.setOrientation(XYMultipleSeriesRenderer.Orientation.VERTICAL);
+
+        seriesRenderer.setApplyBackgroundColor(true);
+        seriesRenderer.setBackgroundColor(Color.argb(100, 50, 50, 50));
+        seriesRenderer.setGridColor(Color.GRAY);
+        seriesRenderer.setShowGrid(false);
+
+        seriesRenderer.setMargins(new int[]{80, 80, 300, 30});
+        seriesRenderer.setYLabelsAlign(Paint.Align.LEFT);
+//        seriesRenderer.setXLabels(0);
+//        seriesRenderer.setXAxisMin(0);
+//        seriesRenderer.setYAxisMin(0);
+        seriesRenderer.setZoomEnabled(false, true);
+        seriesRenderer.setPanEnabled(true, true);
+//        seriesRenderer.setXAxisMax(20);
+
+        LinearLayout layout = (LinearLayout) findViewById(/*R.id.chart*/0);
+        dataset = new XYMultipleSeriesDataset();
+        chartView = ChartFactory.getBarChartView(this, dataset, seriesRenderer, BarChart.Type.DEFAULT);
+        layout.addView(chartView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
+    private void displayChart2(List<ReportGenerator.AggregatedTaskItem> currentPeriodReport,
+                               List<ReportGenerator.AggregatedTaskItem> previousPeriodReport, String periodLabel) {
+
+        int count = dataset.getSeriesCount();
+        for (int i = 0; i < count; i++) {
+            dataset.removeSeries(0);
+        }
+        seriesRenderer.removeAllRenderers();
+
+        seriesRenderer.setXAxisMax(currentPeriodReport.size());
+        long duration = Math.max(currentPeriodReport.get(0).duration, previousPeriodReport.get(0).duration);
+        seriesRenderer.setYAxisMax(convertDuration(duration) * 1.05);
+        seriesRenderer.clearXTextLabels();
+        seriesRenderer.addXTextLabel(0, "");
+        for (int i = 0; i < currentPeriodReport.size(); i++) {
+            ReportGenerator.AggregatedTaskItem item = currentPeriodReport.get(i);
+            seriesRenderer.addXTextLabel(i + 1, item.task.name);
+        }
+        CategorySeries series1 = new CategorySeries("Current " + periodLabel);
+
+        CategorySeries series2 = new CategorySeries("Previous " + periodLabel);
+
+        for (int i = 0; i < 2; i++) {
+            ReportGenerator.AggregatedTaskItem item1 = currentPeriodReport.get(i);
+            series1.add(convertDuration(item1.duration));
+            ReportGenerator.AggregatedTaskItem item2 = previousPeriodReport.get(i);
+            series2.add(convertDuration(item2.duration));
+        }
+
+        dataset.addSeries(series1.toXYSeries());
+        SimpleSeriesRenderer renderer1 = getSeriesRenderer();
+        renderer1.setColor(Color.argb(200, 100, 150, 100));
+        seriesRenderer.addSeriesRenderer(renderer1);
+
+        dataset.addSeries(series2.toXYSeries());
+        SimpleSeriesRenderer renderer2 = getSeriesRenderer();
+        renderer2.setColor(Color.argb(200, 100, 100, 150));
+        seriesRenderer.addSeriesRenderer(renderer2);
+
+        chartView.repaint();
+    }
+
+    private double convertDuration(long duration) {
+        return ((double) duration) / 1000 / 60;
+    }
+
+    private SimpleSeriesRenderer getSeriesRenderer() {
+        SimpleSeriesRenderer renderer = new SimpleSeriesRenderer();
+//        renderer.setStroke(BasicStroke.SOLID);
+//        renderer.set
+        return renderer;
     }
 }

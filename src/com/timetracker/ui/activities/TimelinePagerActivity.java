@@ -1,4 +1,3 @@
-
 package com.timetracker.ui.activities;
 
 import android.os.Bundle;
