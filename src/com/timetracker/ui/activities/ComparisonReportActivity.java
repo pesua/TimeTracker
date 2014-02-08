@@ -100,14 +100,32 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
     }
 
     private void updatePlot(AggregationPeriod period) {
-        Calendar from = Calendar.getInstance();
-        from.add(Calendar.DATE, -(period.days - 1));
+        Calendar calendar = Calendar.getInstance();
+        Date to = calendar.getTime();
+        calendar.add(Calendar.DATE, -(period.days - 1));
+        Date from = calendar.getTime();
 
-        Date timeFrom = from.getTime();
-        List<ReportGenerator.AggregatedTaskItem> currentPeriodReport = reportGenerator.generateReport(timeFrom, new Date(), this);
+        calendar = Calendar.getInstance();
+        calendar.setTime(from);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        from = calendar.getTime();
 
-        from.add(Calendar.DATE, -period.days);
-        List<ReportGenerator.AggregatedTaskItem> previousPeriodReport = reportGenerator.generateReport(from.getTime(), timeFrom, this);
+        List<ReportGenerator.AggregatedTaskItem> currentPeriodReport = reportGenerator.generateReport(from, to, this);
+
+        calendar.add(Calendar.DATE, -1);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        Date prevPeriodTo = calendar.getTime();
+        calendar.add(Calendar.DATE, -(period.days - 1));
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        Date prevPeriodFrom = calendar.getTime();
+        List<ReportGenerator.AggregatedTaskItem> previousPeriodReport = reportGenerator.generateReport(prevPeriodFrom, prevPeriodTo, this);
 
         long[] previousPeriodTime = getCorrespondingTime(currentPeriodReport, previousPeriodReport);
         displayChart(currentPeriodReport, previousPeriodTime, period.label);
