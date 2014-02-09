@@ -9,10 +9,9 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "tasks")
 public class Task {
 
-    public static final int[] COLORS = {0xFF000000, 0xFF444444, 0xFF888888, 0xFFCCCCCC, /*0xFFFFFFFF, */0xFFFF0000,
-            0xFF00FF00, 0xFF0000FF, 0xFFFFFF00, 0xFF00FFFF, 0xFFFF00FF};
+    public static final int[] COLORS = {0xff00384a, 0xff00865a, 0xffa5cf10, 0xfff7cf10, 0xfff76110};
 
-    public static final int DEFAULT_COLOR_ALPHA = 100;
+    public static final int DEFAULT_COLOR_ALPHA = 255;
 
     public static final String TAGS_SEPARATOR = "~";
 
