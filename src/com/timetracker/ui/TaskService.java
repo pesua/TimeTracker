@@ -90,15 +90,16 @@ public class TaskService {
     }
 
     public void showCurrentTaskNotification(Task task) {
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.setClass(applicationContext.getApplicationContext(), MainActivity.class);
-        PendingIntent pIntent = PendingIntent.getActivity(applicationContext, 0, intent, 0);
+        Intent notificationIntent = new Intent(applicationContext, MainActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent intent = PendingIntent.getActivity(applicationContext, 0, notificationIntent, 0);
 
         Notification notification = new Notification.Builder(applicationContext)
                 .setContentTitle("Working on " + task.name)
                 .setContentText("Click to open tracker")
                 .setSmallIcon(R.drawable.clock)
-                .setContentIntent(pIntent)
+                .setContentIntent(intent)
                 .build();
 
         NotificationManager notificationManager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);

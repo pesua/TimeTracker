@@ -76,9 +76,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         super.onResume();
         initContextSpinner();
         loadTaskList();
-
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.cancel(PomodoroService.POMODORO_NOTIFICATION_ID);
+        pomodoroService.cancelPomodoroNotification();
     }
 
     protected void onDestroy() {

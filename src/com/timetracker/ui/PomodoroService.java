@@ -51,18 +51,18 @@ public class PomodoroService {
     }
 
     private void showPomodoroNotification(Context context) {
+        Intent notificationIntent = new Intent(context, MainActivity.class);
+                notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                PendingIntent intent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+
         Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.setClass(context.getApplicationContext(), MainActivity.class);
-        PendingIntent pIntent = PendingIntent.getActivity(context, 0, intent, 0);
-
         Notification noti = new Notification.Builder(context)
                 .setContentTitle("Pomodoro finished")
                 .setContentText("Click to open tracker")
                 .setSmallIcon(R.drawable.check)
                 .setSound(soundUri)
-                .setContentIntent(pIntent)
+                .setContentIntent(intent)
                 .build();
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -70,6 +70,11 @@ public class PomodoroService {
         noti.flags |= Notification.FLAG_AUTO_CANCEL;
 
         notificationManager.notify(POMODORO_NOTIFICATION_ID, noti);
+    }
+
+    public void cancelPomodoroNotification() {
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(PomodoroService.POMODORO_NOTIFICATION_ID);
     }
 
     public void onDestroy(){
