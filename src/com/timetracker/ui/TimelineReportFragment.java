@@ -85,6 +85,7 @@ public class TimelineReportFragment extends Fragment {
                 calendar.setTime(event.switchTime);
                 taskBox.setHeight((int) (((calendar.get(Calendar.HOUR_OF_DAY) - hours) * 60.0 + (calendar.get(Calendar.MINUTE) - minutes)) * hourHeight / 60));
                 taskBox.setGravity(Gravity.CENTER);
+                taskBox.setTextColor(Color.WHITE);
                 tasksLine.addView(taskBox, getLayoutParams());
 
                 hours = calendar.get(Calendar.HOUR_OF_DAY);
@@ -99,8 +100,14 @@ public class TimelineReportFragment extends Fragment {
                 taskBox.setBackground(getFill(0));
             }
             Calendar calendar = Calendar.getInstance();
+            if (!isToday(date)) {
+                calendar.set(Calendar.HOUR_OF_DAY, 23);
+                calendar.set(Calendar.MINUTE, 59);
+                calendar.set(Calendar.SECOND, 59);
+            }
             taskBox.setHeight((int) (((calendar.get(Calendar.HOUR_OF_DAY) - hours) * 60.0 + (calendar.get(Calendar.MINUTE) - minutes)) * hourHeight / 60));
             taskBox.setGravity(Gravity.CENTER);
+            taskBox.setTextColor(Color.WHITE);
 
             tasksLine.addView(taskBox, getLayoutParams());
         } catch (SQLException e) {
@@ -108,12 +115,19 @@ public class TimelineReportFragment extends Fragment {
         }
     }
 
+    private boolean isToday(Date date) {
+        Calendar today = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR);
+    }
+
     private GradientDrawable getFill(int color) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setShape(GradientDrawable.RECTANGLE);
         drawable.setStroke(1, Color.WHITE);
         drawable.setColor(color);
-//        drawable.setAlpha(Task.DEFAULT_COLOR_ALPHA);     todo fix performance issue here
         return drawable;
     }
 

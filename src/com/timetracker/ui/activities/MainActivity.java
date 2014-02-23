@@ -72,10 +72,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        initContextSpinner();
-        loadTaskList();
+    protected void onStart() {
+        super.onStart();
         pomodoroService.cancelPomodoroNotification();
     }
 

@@ -16,7 +16,7 @@ import java.util.Date;
 
 public class TimelinePagerActivity extends FragmentActivity {
 
-    private static final int DISPLAY_DAYS = 14;
+    private static final int DISPLAY_DAYS = 100;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,7 +61,7 @@ public class TimelinePagerActivity extends FragmentActivity {
         @Override
         public CharSequence getPageTitle(int position) {
             Date date = getDay(position).getTime();
-            return new SimpleDateFormat("dd.mm.yyyy").format(date);//todo get format from resources
+            return new SimpleDateFormat("dd.MM.yyyy").format(date);//todo get format from resources
         }
     }
 }
