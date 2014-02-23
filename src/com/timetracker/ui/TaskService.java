@@ -89,6 +89,11 @@ public class TaskService {
         }
     }
 
+    public void showCurrentTaskNotification() {
+        Task task = getLastTaskSwitch().task;
+        showCurrentTaskNotification(task);
+    }
+
     public void showCurrentTaskNotification(Task task) {
         Intent notificationIntent = new Intent(applicationContext, MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
