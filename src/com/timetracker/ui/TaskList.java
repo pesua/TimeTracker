@@ -122,7 +122,7 @@ public class TaskList {
                             }
                         });
 
-                        AlertDialog dialog = new AlertDialog.Builder(mainActivity).setMessage("Create task switch in the past")
+                        AlertDialog dialog = new AlertDialog.Builder(mainActivity).setMessage("Create task switch in the past")  //todo move to resources
                                 .setView(timePicker)
                                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                     @Override

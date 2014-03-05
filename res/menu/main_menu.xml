@@ -9,4 +9,8 @@
         android:id="@+id/showComparisonReportButton"
         android:title="@string/showComparisonReport"
         android:showAsAction="never" />
+    <item
+        android:id="@+id/showSettings"
+        android:title="@string/showSettings"
+        android:showAsAction="never" />
 </menu>

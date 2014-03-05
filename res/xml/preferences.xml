@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+            android:title="@string/pref_daily_report"
+            android:key="pref_daily_report">
+        <CheckBoxPreference
+                android:key="pref_send_report"
+                android:title="@string/pref_send_report"
+                android:summary="@string/pref_send_report_summ"
+                android:defaultValue="false"/>
+        <!--todo add email validation-->
+        <EditTextPreference
+                android:key="pref_report_emails"
+                android:title="@string/pref_report_emails"
+                android:inputType="textEmailAddress"
+                android:dependency="pref_send_report"/>
+        <com.timetracker.ui.activities.TimeDialogPreference
+                android:key="pref_daily_report_time"
+                android:title="@string/pref_daily_report_time"
+                android:dependency="pref_send_report"/>
+    </PreferenceCategory>
+</PreferenceScreen>

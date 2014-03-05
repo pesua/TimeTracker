@@ -1,9 +1,15 @@
 package com.timetracker.ui.activities;
 
-import android.app.*;
-import android.content.*;
+import android.app.AlarmManager;
+import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
@@ -17,12 +23,14 @@ import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
+import com.timetracker.service.MailReportService;
 import com.timetracker.ui.PomodoroService;
 import com.timetracker.ui.TaskList;
 import com.timetracker.ui.TaskService;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -65,6 +73,9 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                 break;
             case R.id.showComparisonReportButton:
                 intent = new Intent(MainActivity.this, ComparisonReportActivity.class);
+                break;
+            case R.id.showSettings:
+                intent = new Intent(MainActivity.this, SettingsActivity.class);
                 break;
         }
         startActivity(intent);

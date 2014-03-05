@@ -9,6 +9,7 @@ import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
 import com.timetracker.domain.persistance.DatabaseHelper;
+import com.timetracker.ui.ReportGenerator;
 import com.timetracker.util.EmptyListAdapter;
 import java.util.*;
 

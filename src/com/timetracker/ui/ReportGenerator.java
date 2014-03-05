@@ -1,4 +1,4 @@
-package com.timetracker.ui.activities;
+package com.timetracker.ui;
 
 import android.content.Context;
 import com.j256.ormlite.android.apptools.OpenHelperManager;

@@ -18,6 +18,15 @@
     <string name="showComparisonReport">Aggregate Report</string>
     <string name="backSwitch">Create task switch in the past</string>
     <string name="incorrectBackSwitchTime">Time can\'t be earlier than previous task switch or later than current time</string>
+    <string name="showSettings">Settings</string>
+    <string name="sendDailyReports">Send daily reports by email</string>
+    <string name="emails">Emails</string>
+    <string name="reportTime">Report time</string>
+    <string name="pref_send_report">Send daily report</string>
+    <string name="pref_send_report_summ">Send aggregated report by email</string>
+    <string name="pref_daily_report">Daily report</string>
+    <string name="pref_report_emails">Email addressees</string>
+    <string name="pref_daily_report_time">Time to send</string>
     <string-array name="intervalChooserLabels">
         <item>1 day</item>
         <item>2 days</item>
