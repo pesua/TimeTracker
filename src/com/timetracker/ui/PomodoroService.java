@@ -13,6 +13,8 @@ import android.net.Uri;
 import com.timetracker.R;
 import com.timetracker.ui.activities.MainActivity;
 
+import java.util.Date;
+
 /**
  * @author Anton Chernetskij
  */
@@ -39,9 +41,9 @@ public class PomodoroService {
         alarmManager = (AlarmManager) (context.getSystemService(Context.ALARM_SERVICE));
     }
 
-    public void startPomodoro(int durationMinutes) {
+    public void startPomodoro(int durationMinutes, Date timeStart) {
         alarmManager.cancel(pomodoroIntent);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + durationMinutes * ONE_MINUTE, pomodoroIntent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, timeStart.getTime() + durationMinutes * ONE_MINUTE, pomodoroIntent);
     }
 
     public void stopPomodoro() {

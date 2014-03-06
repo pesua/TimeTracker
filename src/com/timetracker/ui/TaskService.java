@@ -11,6 +11,7 @@ import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
+import com.timetracker.service.ProgressBarService;
 import com.timetracker.ui.activities.MainActivity;
 
 import java.sql.SQLException;
@@ -46,9 +47,9 @@ public class TaskService {
 
             pomodoroService.stopPomodoro();
             if (task.pomodoroDuration != 0) {
-                pomodoroService.startPomodoro(task.pomodoroDuration);
+                pomodoroService.startPomodoro(task.pomodoroDuration, timeStart);
             }
-            showCurrentTaskNotification(task);
+            showCurrentTaskNotification(task, timeStart);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -91,27 +92,27 @@ public class TaskService {
 
     public void showCurrentTaskNotification() {
         Task task = getLastTaskSwitch().task;
-        showCurrentTaskNotification(task);
+        showCurrentTaskNotification(task, new Date());
     }
 
-    public void showCurrentTaskNotification(Task task) {
+    private void showCurrentTaskNotification(Task task, Date timeStart) {
         Intent notificationIntent = new Intent(applicationContext, MainActivity.class);
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent intent = PendingIntent.getActivity(applicationContext, 0, notificationIntent, 0);
 
-        Notification notification = new Notification.Builder(applicationContext)
+        Notification.Builder builder = new Notification.Builder(applicationContext)
                 .setContentTitle("Working on " + task.name)
                 .setContentText("Click to open tracker")
                 .setSmallIcon(R.drawable.clock)
-                .setContentIntent(intent)
-                .build();
+                .setContentIntent(intent);
+        if (task.pomodoroDuration != 0) {
+            ProgressBarService.startNewProgress(builder, timeStart.getTime(), task.pomodoroDuration, applicationContext);  //todo move this code to pomodoro service
+        }
 
-        NotificationManager notificationManager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
-
+        Notification notification = builder.build();
         notification.flags |= Notification.FLAG_NO_CLEAR;
 
-        notificationManager.cancel(CURRENT_TASK_NOTIFICATION_ID);
+        NotificationManager notificationManager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(CURRENT_TASK_NOTIFICATION_ID, notification);
     }
 }

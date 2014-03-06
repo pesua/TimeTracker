@@ -55,5 +55,6 @@
         </receiver>
 
         <service android:name=".service.MailReportService"/>
+        <service android:name=".service.ProgressBarService"/>
     </application>
 </manifest>
