@@ -19,5 +19,7 @@ public class StartupNotificationService extends BroadcastReceiver {
         DatabaseHelper helper = OpenHelperManager.getHelper(context, DatabaseHelper.class);
         TaskService taskService = new TaskService(context, helper, null);
         taskService.showCurrentTaskNotification();
+
+        MailReportService.scheduleReport(context);
     }
 }
