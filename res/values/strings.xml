@@ -27,6 +27,7 @@
     <string name="pref_daily_report">Daily report</string>
     <string name="pref_report_emails">Email addressees</string>
     <string name="pref_daily_report_time">Time to send</string>
+    <string name="undoStart">Undo start task</string>
     <string-array name="intervalChooserLabels">
         <item>1 day</item>
         <item>2 days</item>

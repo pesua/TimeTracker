@@ -115,4 +115,13 @@ public class TaskService {
         NotificationManager notificationManager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(CURRENT_TASK_NOTIFICATION_ID, notification);
     }
+
+    public void undoStartTask(){
+        try {
+            TaskSwitchEvent lastTaskSwitch = getLastTaskSwitch();
+            databaseHelper.getEventsDao().delete(lastTaskSwitch);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

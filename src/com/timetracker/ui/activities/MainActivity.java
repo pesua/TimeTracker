@@ -55,6 +55,18 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         initContextCreationButton();
         initTaskCreationButton();
         initRemoveContextButton();
+        initUndoButton();
+    }
+
+    private void initUndoButton() {
+        View undoButton = findViewById(R.id.undoStartButton);
+        undoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                taskService.undoStartTask();
+                refreshTimer();
+            }
+        });
     }
 
     @Override
@@ -86,6 +98,12 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     protected void onStart() {
         super.onStart();
         pomodoroService.cancelPomodoroNotification();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadTaskList();
     }
 
     protected void onDestroy() {
