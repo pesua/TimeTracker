@@ -1,15 +1,10 @@
 package com.timetracker.ui.activities;
 
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.PendingIntent;
-import android.app.Service;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
@@ -23,14 +18,12 @@ import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
-import com.timetracker.service.MailReportService;
 import com.timetracker.ui.PomodoroService;
 import com.timetracker.ui.TaskList;
 import com.timetracker.ui.TaskService;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -49,7 +42,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         pomodoroService = new PomodoroService(getApplicationContext());
         taskService = new TaskService(this, getHelper(), pomodoroService);
 
-        initContextSpinner();
+        loadContextSpinner();
         loadTaskList();
         refreshTimer();
         initContextCreationButton();
@@ -103,6 +96,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
     @Override
     protected void onResume() {
         super.onResume();
+        loadContextSpinner();
         loadTaskList();
     }
 
@@ -111,9 +105,10 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         super.onDestroy();
     }
 
-    private void initContextSpinner() {
+    private void loadContextSpinner() {
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         try {
+            TaskContext currentContext = getCurrentContext();
             List<TaskContext> contexts = getHelper().getContextDao().queryBuilder().orderBy("name", true)
                     .where().eq("isDeleted", Boolean.FALSE).query();
             ArrayAdapter<TaskContext> dataAdapter = new ArrayAdapter<>(this,
@@ -131,11 +126,13 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
                 }
             });
-            TaskSwitchEvent switchEvent = taskService.getLastTaskSwitch();
-            if (switchEvent != null) {
-                TaskContext currentContext = switchEvent.task.context;
-                spinner.setSelection(contexts.indexOf(currentContext));
+            if (currentContext == null) {
+                TaskSwitchEvent switchEvent = taskService.getLastTaskSwitch();
+                if (switchEvent != null) {
+                    currentContext = switchEvent.task.context;
+                }
             }
+            spinner.setSelection(contexts.indexOf(currentContext));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -223,7 +220,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         taskService.removeTaskContext(context);
-                        initContextSpinner();
+                        loadContextSpinner();
                         dialog.dismiss();
                     }
                 }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
