@@ -63,15 +63,17 @@ public class ReportGenerator {
     }
 
     private List<TaskSwitchEvent> getPreparedEvents(Date from, Date to, Context context) throws SQLException {
-        List<TaskSwitchEvent> events = getHelper(context).getTaskEvents(from, to);
+        DatabaseHelper helper = getHelper(context);
+        List<TaskSwitchEvent> events = helper.getTaskEvents(from, to);
         if (events.isEmpty()) {
             return Collections.emptyList();
         }
         TaskSwitchEvent firstEvent = null;
         Integer firstEventId = events.get(0).id;
         if (firstEventId > 1) {
-            firstEvent = getHelper(context).getEventsDao().queryForId(firstEventId - 1);
+            firstEvent = helper.getEventsDao().queryForId(firstEventId - 1);
         }
+        OpenHelperManager.releaseHelper();
 
         if (firstEvent != null) {
             Calendar calendar = Calendar.getInstance();

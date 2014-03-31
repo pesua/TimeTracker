@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.GenericRawResults;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
@@ -21,12 +22,10 @@ public class TaskService {
     public static final int CURRENT_TASK_NOTIFICATION_ID = 1;
 
     private final Context applicationContext;
-    private final DatabaseHelper databaseHelper;
     private final PomodoroService pomodoroService;
 
-    public TaskService(Context context, DatabaseHelper databaseHelper, PomodoroService pomodoroService) {
+    public TaskService(Context context, PomodoroService pomodoroService) {
         this.applicationContext = context.getApplicationContext();
-        this.databaseHelper = databaseHelper;
         this.pomodoroService = pomodoroService;
     }
 
@@ -43,7 +42,8 @@ public class TaskService {
             TaskSwitchEvent event = new TaskSwitchEvent();
             event.task = task;
             event.switchTime = timeStart;
-            databaseHelper.getEventsDao().create(event);
+            getDatabaseHelper().getEventsDao().create(event);
+            OpenHelperManager.releaseHelper();
 
             pomodoroService.stopPomodoro();
             if (task.pomodoroDuration != 0) {
@@ -55,18 +55,24 @@ public class TaskService {
         }
     }
 
+    private DatabaseHelper getDatabaseHelper() {
+        return OpenHelperManager.getHelper(applicationContext, DatabaseHelper.class);
+    }
+
     public TaskSwitchEvent getLastTaskSwitch() {
         try {
+            DatabaseHelper databaseHelper = getDatabaseHelper();
             GenericRawResults<String[]> results = databaseHelper.getEventsDao()
                     .queryRaw("select id from task_switch_events where switchTime = (select max(switchTime) from task_switch_events)");
 
             String[] firstResult = results.getFirstResult();
-            if (firstResult == null) {
-                return null;
-            } else {
+            TaskSwitchEvent result = null;
+            if (firstResult != null) {
                 int lastEventId = Integer.valueOf(firstResult[0]);
-                return databaseHelper.getEventsDao().queryForId(lastEventId);
+                result = databaseHelper.getEventsDao().queryForId(lastEventId);
             }
+            OpenHelperManager.releaseHelper();
+            return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -75,7 +81,8 @@ public class TaskService {
     public void removeTaskContext(TaskContext context) {
         context.isDeleted = true;
         try {
-            databaseHelper.getContextDao().update(context);
+            getDatabaseHelper().getContextDao().update(context);
+            OpenHelperManager.releaseHelper();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -84,7 +91,8 @@ public class TaskService {
     public void removeTask(Task task) {
         task.isDeleted = true;
         try {
-            databaseHelper.getTaskDao().update(task);
+            getDatabaseHelper().getTaskDao().update(task);
+            OpenHelperManager.releaseHelper();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -119,7 +127,8 @@ public class TaskService {
     public void undoStartTask(){
         try {
             TaskSwitchEvent lastTaskSwitch = getLastTaskSwitch();
-            databaseHelper.getEventsDao().delete(lastTaskSwitch);
+            getDatabaseHelper().getEventsDao().delete(lastTaskSwitch);
+            OpenHelperManager.releaseHelper();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

@@ -1,10 +1,12 @@
 package com.timetracker.ui.activities;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
@@ -12,22 +14,26 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
+import com.timetracker.service.BackupTask;
+import com.timetracker.service.RestoreBackupTask;
 import com.timetracker.ui.PomodoroService;
 import com.timetracker.ui.TaskList;
 import com.timetracker.ui.TaskService;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
+public class MainActivity extends Activity {
     private TaskService taskService;
     private PomodoroService pomodoroService;
 
@@ -40,7 +46,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         setContentView(R.layout.main);
 
         pomodoroService = new PomodoroService(getApplicationContext());
-        taskService = new TaskService(this, getHelper(), pomodoroService);
+        taskService = new TaskService(this, pomodoroService);
 
         loadContextSpinner();
         loadTaskList();
@@ -82,8 +88,16 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             case R.id.showSettings:
                 intent = new Intent(MainActivity.this, SettingsActivity.class);
                 break;
+            case R.id.exportDbButton:
+                new BackupTask(this).execute();
+                break;
+            case R.id.importDbButton:
+                importBackup();
+                break;
         }
-        startActivity(intent);
+        if (intent != null) {
+            startActivity(intent);
+        }
         return true;
     }
 
@@ -100,6 +114,12 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         loadTaskList();
     }
 
+    public void refreshAll(){
+        loadContextSpinner();
+        loadTaskList();
+        refreshTimer();
+    }
+
     protected void onDestroy() {
         pomodoroService.onDestroy();    //todo check do we need this at all
         super.onDestroy();
@@ -111,6 +131,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             TaskContext currentContext = getCurrentContext();
             List<TaskContext> contexts = getHelper().getContextDao().queryBuilder().orderBy("name", true)
                     .where().eq("isDeleted", Boolean.FALSE).query();
+            OpenHelperManager.releaseHelper();
             ArrayAdapter<TaskContext> dataAdapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_spinner_item, contexts);
             dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -148,6 +169,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             } else {
                 queryResult = getHelper().getTaskDao().queryBuilder().orderBy("name", true)
                         .where().eq("context_id", id).and().eq("isDeleted", Boolean.FALSE).query();
+                OpenHelperManager.releaseHelper();
             }
             final List<Task> tasks = queryResult;
             ListAdapter adapter = new TaskList(this).createListAdapter(tasks);
@@ -172,8 +194,6 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
             Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer);
             chronometer.start();
             chronometer.setBase(SystemClock.elapsedRealtime() - (new Date().getTime() - lastEvent.switchTime.getTime()));
-        } else {
-            Log.i(this.getClass().getName(), "Started the first task!");
         }
     }
 
@@ -234,5 +254,60 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
     public TaskService getTaskService() {
         return taskService;
+    }
+
+    private void importBackup() {
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(this);
+        builderSingle.setTitle(R.string.import_dialog);
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
+                this, android.R.layout.select_dialog_singlechoice);
+        File sd = Environment.getExternalStorageDirectory();
+        String[] list = new File(sd, BackupTask.APP_FOLDER).list();
+        for (String filename : list) {
+            if (filename.endsWith(".sqlite")) {
+                arrayAdapter.add(filename.substring(0, filename.length() - 7));
+            }
+        }
+        builderSingle.setNegativeButton(android.R.string.cancel,
+                new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        builderSingle.setAdapter(arrayAdapter,
+                new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final String filename = arrayAdapter.getItem(which);
+                        AlertDialog.Builder builderInner = new AlertDialog.Builder(
+                                MainActivity.this);
+                        builderInner.setMessage(filename);
+                        builderInner.setTitle(getString(R.string.restore_confirmation));
+                        builderInner.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                new RestoreBackupTask(MainActivity.this).execute(filename);
+                            }
+                        });
+                        builderInner.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                        builderInner.show();
+                    }
+                });
+        builderSingle.show();
+    }
+
+    private DatabaseHelper getHelper(){
+        return OpenHelperManager.getHelper(getApplicationContext(), DatabaseHelper.class);
     }
 }

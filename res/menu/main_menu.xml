@@ -13,4 +13,12 @@
         android:id="@+id/showSettings"
         android:title="@string/showSettings"
         android:showAsAction="never" />
+    <item
+        android:id="@+id/exportDbButton"
+        android:title="@string/export_db"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/importDbButton"
+        android:title="@string/import_db"
+        android:showAsAction="never" />
 </menu>

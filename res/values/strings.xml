@@ -28,6 +28,12 @@
     <string name="pref_report_emails">Email addressees</string>
     <string name="pref_daily_report_time">Time to send</string>
     <string name="undoStart">Undo start task</string>
+    <string name="export_db">Backup DB</string>
+    <string name="export_success">DB backed</string>
+    <string name="import_success">DB restored</string>
+    <string name="import_db">Restore DB backup</string>
+    <string name="import_dialog">Select backup to restore:</string>
+    <string name="restore_confirmation">Confirm backup to restore:</string>
     <string-array name="intervalChooserLabels">
         <item>1 day</item>
         <item>2 days</item>

@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
-    private static final String DATABASE_NAME = "time_tracker.db";
+    public static final String DATABASE_NAME = "time_tracker.db";
     private static final int DATABASE_VERSION = 1;
 
     private static final Class[] DOMAIN_CLASSES = {Task.class, TaskContext.class, TaskSwitchEvent.class};

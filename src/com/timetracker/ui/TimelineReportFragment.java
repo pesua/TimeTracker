@@ -57,7 +57,8 @@ public class TimelineReportFragment extends Fragment {
 
     private void initTasksStack(int hourHeight, Date date) {
         try {
-            List<TaskSwitchEvent> events = getHelper().getTaskEvents(date, date);
+            DatabaseHelper helper = getHelper();
+            List<TaskSwitchEvent> events = helper.getTaskEvents(date, date);
 
             if (events.isEmpty()) {
                 return;
@@ -66,9 +67,10 @@ public class TimelineReportFragment extends Fragment {
             Task currentTask = null;
             Integer firstEventId = events.get(0).id;
             if (firstEventId > 1) {
-                TaskSwitchEvent previousEvent = getHelper().getEventsDao().queryForId(firstEventId - 1);
+                TaskSwitchEvent previousEvent = helper.getEventsDao().queryForId(firstEventId - 1);
                 currentTask = previousEvent.task;
             }
+            OpenHelperManager.releaseHelper();
             int hours = 0;
             int minutes = 0;
 

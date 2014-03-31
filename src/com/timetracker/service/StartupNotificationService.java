@@ -16,8 +16,7 @@ public class StartupNotificationService extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.i(StartupNotificationService.class.getSimpleName(), "Adding task notification");
-        DatabaseHelper helper = OpenHelperManager.getHelper(context, DatabaseHelper.class);
-        TaskService taskService = new TaskService(context, helper, null);
+        TaskService taskService = new TaskService(context, null);
         taskService.showCurrentTaskNotification();
 
         MailReportService.scheduleReport(context);

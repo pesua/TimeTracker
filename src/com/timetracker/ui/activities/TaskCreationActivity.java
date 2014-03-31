@@ -38,7 +38,7 @@ public class TaskCreationActivity extends OrmLiteBaseActivity<DatabaseHelper> {
         setContentView(R.layout.task);
 
         PomodoroService pomodoroService = new PomodoroService(getApplicationContext());
-        taskService = new TaskService(this, getHelper(), pomodoroService);
+        taskService = new TaskService(this, pomodoroService);
 
         Intent intent = getIntent();
         int contextId = intent.getIntExtra(CONTEXT_ID, -1);
