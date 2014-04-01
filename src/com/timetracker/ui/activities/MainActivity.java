@@ -8,14 +8,12 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
-import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskContext;
@@ -62,8 +60,9 @@ public class MainActivity extends Activity {
         undoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                taskService.undoStartTask();
-                refreshTimer();
+                if (taskService.undoStartTask()) {
+                    refreshTimer();
+                }
             }
         });
     }
@@ -114,7 +113,7 @@ public class MainActivity extends Activity {
         loadTaskList();
     }
 
-    public void refreshAll(){
+    public void refreshAll() {
         loadContextSpinner();
         loadTaskList();
         refreshTimer();
@@ -213,10 +212,13 @@ public class MainActivity extends Activity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, TaskCreationActivity.class);
-                intent.putExtra(TaskCreationActivity.CONTEXT_ID, getCurrentContext().id);
-                intent.putExtra(TaskCreationActivity.TASK_ID, -1);
-                startActivity(intent);
+                TaskContext context = getCurrentContext();
+                if (context != null) {
+                    Intent intent = new Intent(MainActivity.this, TaskCreationActivity.class);
+                    intent.putExtra(TaskCreationActivity.CONTEXT_ID, context.id);
+                    intent.putExtra(TaskCreationActivity.TASK_ID, -1);
+                    startActivity(intent);
+                }
             }
         });
     }
@@ -227,7 +229,9 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 final TaskContext context = getCurrentContext();
-                showRemoveDialog(context);
+                if (context != null) {
+                    showRemoveDialog(context);
+                }
             }
         });
     }
@@ -307,7 +311,7 @@ public class MainActivity extends Activity {
         builderSingle.show();
     }
 
-    private DatabaseHelper getHelper(){
+    private DatabaseHelper getHelper() {
         return OpenHelperManager.getHelper(getApplicationContext(), DatabaseHelper.class);
     }
 }

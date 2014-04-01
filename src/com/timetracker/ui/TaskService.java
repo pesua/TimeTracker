@@ -99,8 +99,11 @@ public class TaskService {
     }
 
     public void showCurrentTaskNotification() {
-        Task task = getLastTaskSwitch().task;
-        showCurrentTaskNotification(task, new Date());
+        TaskSwitchEvent lastTaskSwitch = getLastTaskSwitch();
+        if (lastTaskSwitch != null) {
+            Task task = lastTaskSwitch.task;
+            showCurrentTaskNotification(task, new Date());
+        }
     }
 
     private void showCurrentTaskNotification(Task task, Date timeStart) {
@@ -124,11 +127,16 @@ public class TaskService {
         notificationManager.notify(CURRENT_TASK_NOTIFICATION_ID, notification);
     }
 
-    public void undoStartTask(){
+    public boolean undoStartTask(){
         try {
             TaskSwitchEvent lastTaskSwitch = getLastTaskSwitch();
-            getDatabaseHelper().getEventsDao().delete(lastTaskSwitch);
-            OpenHelperManager.releaseHelper();
+            if (lastTaskSwitch != null) {
+                getDatabaseHelper().getEventsDao().delete(lastTaskSwitch);
+                OpenHelperManager.releaseHelper();
+                return true;
+            } else {
+                return false;
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
