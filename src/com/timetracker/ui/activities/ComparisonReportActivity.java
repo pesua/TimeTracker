@@ -180,6 +180,7 @@ public class ComparisonReportActivity extends OrmLiteBaseActivity<DatabaseHelper
                 view.setGravity(Gravity.LEFT);
                 view.setHeight(BAR_HEIGHT);
                 view.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, BAR_HEIGHT));
+                view.setPadding(0,0,0,0);
 
                 ReportGenerator.AggregatedTaskItem currentPeriodItem = currentPeriodReport.get(position);
                 view.setText(currentPeriodItem.task.name + " " +
