@@ -10,6 +10,10 @@
         android:title="@string/showComparisonReport"
         android:showAsAction="never" />
     <item
+        android:id="@+id/sendReportButton"
+        android:title="@string/send_report"
+        android:showAsAction="never" />
+    <item
         android:id="@+id/showSettings"
         android:title="@string/showSettings"
         android:showAsAction="never" />

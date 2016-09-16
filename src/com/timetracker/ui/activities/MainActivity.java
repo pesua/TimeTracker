@@ -20,6 +20,7 @@ import com.timetracker.domain.TaskContext;
 import com.timetracker.domain.TaskSwitchEvent;
 import com.timetracker.domain.persistance.DatabaseHelper;
 import com.timetracker.service.BackupTask;
+import com.timetracker.service.MailReportService;
 import com.timetracker.service.RestoreBackupTask;
 import com.timetracker.ui.PomodoroService;
 import com.timetracker.ui.TaskList;
@@ -84,6 +85,10 @@ public class MainActivity extends Activity {
             case R.id.showComparisonReportButton:
                 intent = new Intent(MainActivity.this, ComparisonReportActivity.class);
                 break;
+            case R.id.sendReportButton:
+                intent = new Intent(MainActivity.this, MailReportService.class);
+                MainActivity.this.startService(intent);
+                return true;
             case R.id.showSettings:
                 intent = new Intent(MainActivity.this, SettingsActivity.class);
                 break;
