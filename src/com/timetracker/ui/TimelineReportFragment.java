@@ -1,6 +1,5 @@
 package com.timetracker.ui;
 
-import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -12,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
-import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.timetracker.R;
 import com.timetracker.domain.Task;
 import com.timetracker.domain.TaskSwitchEvent;
@@ -67,7 +65,10 @@ public class TimelineReportFragment extends Fragment {
             Task currentTask = null;
             Integer firstEventId = events.get(0).id;
             if (firstEventId > 1) {
-                TaskSwitchEvent previousEvent = helper.getEventsDao().queryForId(firstEventId - 1);
+                int eventId = firstEventId;
+                TaskSwitchEvent previousEvent;
+                while ((previousEvent = helper.getEventsDao().queryForId(--eventId)) == null){
+                }
                 currentTask = previousEvent.task;
             }
             OpenHelperManager.releaseHelper();
