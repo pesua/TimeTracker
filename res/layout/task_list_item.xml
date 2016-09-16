@@ -19,6 +19,19 @@
             android:paddingLeft="10dp"/>
 
     <ImageButton
+        android:layout_width="@dimen/button_image_size"
+        android:layout_height="@dimen/button_image_size"
+        android:id="@+id/pastSwitch"
+        android:layout_gravity="center_vertical|right"
+        android:layout_weight="0"
+        android:padding="@dimen/button_image_padding"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/backSwitch"
+        android:src="@drawable/timer"
+        android:cropToPadding="false" />
+
+    <ImageButton
             android:layout_width="@dimen/button_image_size"
             android:layout_height="@dimen/button_image_size"
             android:id="@+id/editTask"
